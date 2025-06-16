@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,6 +39,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'rest_framework',
+    'api',
 ]
 
 MIDDLEWARE = [
@@ -99,10 +103,18 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+STATIC_URL = '/static/'
+# STATICFILES_DIRS = [BASE_DIR / "static"] # Если будут общие статические файлы на уровне проекта
+STATIC_ROOT = BASE_DIR / 'static_collected' # Для сбора статики в продакшене
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "ru-ru"
 
 TIME_ZONE = "UTC"
 
