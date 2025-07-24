@@ -1,4 +1,4 @@
-# core/urls.py
+# backend/backend/urls.py
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -6,12 +6,14 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # Подключаем URL'ы из наших приложений с префиксом /api/v1/
+    # Наши API эндпоинты
     path('api/v1/', include('api.urls')),
-    path('api/v1/', include('users.urls')),
+
+    # Эндпоинты для управления пользователями (регистрация, логин и т.д.)
+    # Это создаст URL'ы типа /api/v1/auth/users/, /api/v1/auth/jwt/create/ (логин)
+    path('api/v1/auth/', include('djoser.urls')),
+    path('api/v1/auth/', include('djoser.urls.jwt')),
 ]
 
-# Этот блок нужен для того, чтобы в режиме разработки (DEBUG=True)
-# Django мог самостоятельно отдавать медиа-файлы (наши картинки, схемы и т.д.)
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
