@@ -1,12 +1,13 @@
     // frontend/src/App.jsx
     import { Routes, Route, Link } from 'react-router-dom';
-    import React, { useContext } from 'react'; // Импортируем useContext
-    import AuthContext from './context/AuthContext'; // Импортируем наш контекст
+    import React, { useContext } from 'react';
+    import AuthContext from './context/AuthContext';
 
     import SchemeList from './components/SchemeList';
     import SchemeDetail from './components/SchemeDetail';
     import SchemeForm from './components/SchemeForm';
-    import LoginPage from './components/LoginPage'; // Импортируем страницу логина
+    import LoginPage from './components/LoginPage';
+    import SchemeEditForm from './components/SchemeEditForm';
     import './App.css';
 
     function App() {
@@ -38,8 +39,9 @@
             <Routes>
               <Route path="/" element={<SchemeList />} />
               <Route path="/schemes/:id" element={<SchemeDetail />} />
+              <Route path="/schemes/:id/edit" element={<SchemeEditForm />} />
               <Route path="/create-scheme" element={<SchemeForm />} />
-              <Route path="/login" element={<LoginPage />} /> {/* Добавляем маршрут */}
+              <Route path="/login" element={<LoginPage />} />
             </Routes>
           </main>
         </div>

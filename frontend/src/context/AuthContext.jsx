@@ -1,66 +1,66 @@
-    // frontend/src/context/AuthContext.jsx
-    import React, { createContext, useState, useEffect } from 'react';
-    import { useNavigate } from 'react-router-dom';
-    import { jwtDecode } from 'jwt-decode';
-    import apiClient from '../api/axios';
+// frontend/src/context/AuthContext.jsx
+import React, { createContext, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
+import apiClient from '../api/apiClient';
 
-    const AuthContext = createContext();
+const AuthContext = createContext();
 
-    export default AuthContext;
+export default AuthContext;
 
-    export const AuthProvider = ({ children }) => {
-        // Пробуем достать токены из localStorage при загрузке приложения
-        const [authTokens, setAuthTokens] = useState(() =>
-            localStorage.getItem('authTokens') ? JSON.parse(localStorage.getItem('authTokens')) : null
-        );
-        // Если токены есть, декодируем их и получаем информацию о пользователе
-        const [user, setUser] = useState(() =>
-            localStorage.getItem('authTokens') ? jwtDecode(JSON.parse(localStorage.getItem('authTokens')).access) : null
-        );
+export const AuthProvider = ({ children }) => {
+    const [authTokens, setAuthTokens] = useState(() =>
+        localStorage.getItem('authTokens') ? JSON.parse(localStorage.getItem('authTokens')) : null
+    );
+    const [user, setUser] = useState(() =>
+        localStorage.getItem('authTokens') ? jwtDecode(JSON.parse(localStorage.getItem('authTokens')).access) : null
+    );
 
-        const navigate = useNavigate();
+    const navigate = useNavigate();
 
-        // Функция для входа пользователя
-        const loginUser = async (username, password) => {
-            try {
-                const response = await apiClient.post('/auth/jwt/create/', {
-                    email: username ,
-                    password: password
-                });
+    const loginUser = async (username, password) => {
+        try {
+            const response = await apiClient.post('/auth/jwt/create/', {
+                email: username,
+                password: password
+            });
 
-                if (response.status === 200) {
-                    const data = response.data;
-                    setAuthTokens(data);
-                    setUser(jwtDecode(data.access));
-                    // Сохраняем токены в localStorage, чтобы они не пропадали при перезагрузке
-                    localStorage.setItem('authTokens', JSON.stringify(data));
-                    navigate('/'); // Перенаправляем на главную после успешного входа
-                }
-            } catch (error) {
-                console.error("Ошибка входа:", error);
-                alert('Неверное имя пользователя или пароль!');
+            if (response.status === 200) {
+                const data = response.data;
+                // 1. Сохраняем токены в localStorage
+                localStorage.setItem('authTokens', JSON.stringify(data));
+                // 2. Обновляем состояние React, чтобы интерфейс изменился
+                setAuthTokens(data);
+                setUser(jwtDecode(data.access));
+                // 3. Перенаправляем пользователя
+                navigate('/');
             }
-        };
-
-        // Функция для выхода
-        const logoutUser = () => {
-            setAuthTokens(null);
-            setUser(null);
-            localStorage.removeItem('authTokens');
-            navigate('/login'); // Перенаправляем на страницу входа
-        };
-
-        // Передаем все нужные данные и функции в контекст
-        const contextData = {
-            user,
-            authTokens,
-            loginUser,
-            logoutUser,
-        };
-
-        return (
-            <AuthContext.Provider value={contextData}>
-                {children}
-            </AuthContext.Provider>
-        );
+        } catch (error) {
+            console.error("Ошибка входа:", error.response ? error.response.data : error);
+            alert('Неверный логин или пароль.');
+        }
     };
+
+    const logoutUser = () => {
+        // 1. Чистим localStorage
+        localStorage.removeItem('authTokens');
+        // 2. Обновляем состояние React
+        setAuthTokens(null);
+        setUser(null);
+        // 3. Перенаправляем пользователя
+        navigate('/login');
+    };
+
+    const contextData = {
+        user,
+        authTokens,
+        loginUser,
+        logoutUser,
+    };
+
+    return (
+        <AuthContext.Provider value={contextData}>
+            {children}
+        </AuthContext.Provider>
+    );
+};

@@ -1,71 +1,81 @@
-    import React, { useState, useEffect } from 'react';
-    import apiClient from '../api/axios';
-    import { Link } from 'react-router-dom';
+// frontend/src/components/SchemeList.jsx
 
-    function SchemeList() {
-      // Состояние для хранения списка схем
-      const [schemes, setSchemes] = useState([]);
-      // Состояние для отслеживания загрузки
-      const [loading, setLoading] = useState(true);
-      // Состояние для хранения ошибки
-      const [error, setError] = useState(null);
+import React, { useState, useEffect } from 'react';
+import apiClient from '../api/apiClient';
+import { Link } from 'react-router-dom';
 
-      // useEffect будет выполняться один раз после первого рендера компонента
-      useEffect(() => {
-        // Определяем асинхронную функцию для получения данных
+function SchemeList() {
+    const [schemes, setSchemes] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
         const fetchSchemes = async () => {
-          try {
-            // Отправляем GET-запрос на эндпоинт '/schemes/'
-            const response = await apiClient.get('/schemes/');
-            // Сохраняем полученные данные в состояние
-            setSchemes(response.data); // У DRF данные обычно в response.data.results
-          } catch (err) {
-            // Если произошла ошибка, сохраняем ее
-            setError(err);
-          } finally {
-            // В любом случае (успех или ошибка) убираем индикатор загрузки
-            setLoading(false);
-          }
+            try {
+                // ВАЖНО: DRF с пагинацией по умолчанию кладет данные в `response.data.results`.
+                // Без пагинации - просто в `response.data`. Давайте будем готовы к обоим случаям.
+                const response = await apiClient.get('/schemes/');
+                setSchemes(response.data.results || response.data);
+            } catch (err) {
+                setError(err);
+            } finally {
+                setLoading(false);
+            }
         };
 
-        fetchSchemes(); // Вызываем функцию
-      }, []); // Пустой массив зависимостей означает, что эффект выполнится только один раз
+        fetchSchemes();
+    }, []);
 
-      // Отображаем разные вещи в зависимости от состояния
-      if (loading) {
+    if (loading) {
         return <p>Загрузка схем...</p>;
-      }
-
-      if (error) {
-        // Важно! На этом этапе ты, скорее всего, увидишь ошибку CORS. Это нормально, мы исправим ее дальше.
-        console.error("Ошибка CORS или другая сетевая ошибка:", error);
-        return <p>Ошибка при загрузке данных. Откройте консоль разработчика (F12) для подробностей.</p>;
-      }
-
-      return (
-        <div>
-          <h2>Список схем</h2>
-          {schemes.length > 0 ? (
-            <ul>
-              {schemes.map(scheme => (
-                <li key={scheme.id}>
-                  {/* 2. Оборачиваем заголовок в Link */}
-                  <h3>
-                    <Link to={`/schemes/${scheme.id}`}>
-                      {scheme.title}
-                    </Link>
-                  </h3>
-                  {/* Мы используем scheme.author.username, так как наш ListSerializer тоже вложенный */}
-                  <p>Автор: {scheme.author.username}</p>
-                  <p>Категория: {scheme.category.name}</p>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>Схем пока нет.</p>
-          )}
-        </div>
-      );
     }
 
-    export default SchemeList;
+    if (error) {
+        console.error("Ошибка при загрузке схем:", error);
+        return <p>Ошибка при загрузке данных. Откройте консоль (F12) для подробностей.</p>;
+    }
+
+    return (
+        <div>
+            <h2>Список схем</h2>
+            {schemes.length > 0 ? (
+                <ul style={{ listStyle: 'none', padding: 0 }}>
+                    {schemes.map(scheme => (
+                        <li key={scheme.id} style={{ border: '1px solid #ccc', marginBottom: '20px', padding: '15px' }}>
+                            {/* === ИСПРАВЛЕНИЕ ЗДЕСЬ === */}
+
+                            {/* 1. Добавляем картинку-превью, если она есть */}
+                            {scheme.main_image && (
+                                <Link to={`/schemes/${scheme.id}`}>
+                                    <img
+                                      src={scheme.main_image}
+                                      alt={`Превью для ${scheme.title}`}
+                                      style={{ maxWidth: '200px', height: 'auto', float: 'left', marginRight: '15px' }}
+                                    />
+                                </Link>
+                            )}
+
+                            <div>
+                                <h3>
+                                    <Link to={`/schemes/${scheme.id}`}>
+                                        {scheme.title}
+                                    </Link>
+                                </h3>
+
+                                {/* 2. Отображаем автора и категорию как строки и добавляем проверку на их существование */}
+                                <p><strong>Автор:</strong> {scheme.author || 'Не указан'}</p>
+                                <p><strong>Категория:</strong> {scheme.category || 'Без категории'}</p>
+                                <p><strong>Теги:</strong> {scheme.tags && scheme.tags.length > 0 ? scheme.tags.join(', ') : 'Нет тегов'}</p>
+                            </div>
+                            <div style={{clear: 'both'}}></div>
+                        </li>
+                    ))}
+                </ul>
+            ) : (
+                <p>Схем пока нет. <Link to="/create-scheme">Добавить первую схему?</Link></p>
+            )}
+        </div>
+    );
+}
+
+export default SchemeList;
