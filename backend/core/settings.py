@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'api',
     'users',
     'corsheaders',
+    'django_filters',
     'rest_framework_simplejwt',
     'djoser',
 ]
@@ -155,6 +156,8 @@ REST_FRAMEWORK = {
                 # Указываем, что будем использовать аутентификацию по JWT
                 'rest_framework_simplejwt.authentication.JWTAuthentication',
             ],
+            'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+            'PAGE_SIZE': 5,  # Количество схем на одной странице
         }
 
 

@@ -1,78 +1,80 @@
 // frontend/src/components/SchemeList.jsx
 
-import React, { useState, useEffect } from 'react';
-import apiClient from '../api/apiClient';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import apiClient from '../api/apiClient';
+// import './SchemeList.css';
 
-function SchemeList() {
+function SchemeList({ schemes: propSchemes, isMySchemesPage = false }) {
     const [schemes, setSchemes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [nextPageUrl, setNextPageUrl] = useState(null);
+    const [prevPageUrl, setPrevPageUrl] = useState(null);
 
-    useEffect(() => {
-        const fetchSchemes = async () => {
-            try {
-                // ВАЖНО: DRF с пагинацией по умолчанию кладет данные в `response.data.results`.
-                // Без пагинации - просто в `response.data`. Давайте будем готовы к обоим случаям.
-                const response = await apiClient.get('/schemes/');
-                setSchemes(response.data.results || response.data);
-            } catch (err) {
-                setError(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchSchemes();
+    const fetchPaginatedSchemes = useCallback(async (url) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await apiClient.get(url);
+            // Работаем с пагинированным ответом
+            setSchemes(response.data.results);
+            setNextPageUrl(response.data.next);
+            setPrevPageUrl(response.data.previous);
+        } catch (err) {
+            setError("Не удалось загрузить схемы.");
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
-    if (loading) {
-        return <p>Загрузка схем...</p>;
-    }
+    useEffect(() => {
+        // Сценарий 1: Схемы переданы извне (как массив)
+        if (propSchemes) {
+            setSchemes(propSchemes);
+            setLoading(false);
+            // Убираем кнопки пагинации для этого случая
+            setNextPageUrl(null);
+            setPrevPageUrl(null);
+        }
+        // Сценарий 2: Главная страница, загружаем сами
+        else {
+            fetchPaginatedSchemes('/schemes/');
+        }
+    }, [propSchemes, fetchPaginatedSchemes]);
 
-    if (error) {
-        console.error("Ошибка при загрузке схем:", error);
-        return <p>Ошибка при загрузке данных. Откройте консоль (F12) для подробностей.</p>;
-    }
+    if (loading) return <p>Загрузка схем...</p>;
+    if (error) return <p style={{ color: 'red' }}>{error}</p>;
 
     return (
         <div>
-            <h2>Список схем</h2>
             {schemes.length > 0 ? (
-                <ul style={{ listStyle: 'none', padding: 0 }}>
-                    {schemes.map(scheme => (
-                        <li key={scheme.id} style={{ border: '1px solid #ccc', marginBottom: '20px', padding: '15px' }}>
-                            {/* === ИСПРАВЛЕНИЕ ЗДЕСЬ === */}
-
-                            {/* 1. Добавляем картинку-превью, если она есть */}
-                            {scheme.main_image && (
+                <>
+                    <div className="scheme-list-container">
+                        {schemes.map(scheme => (
+                            <div key={scheme.id} className="scheme-card">
                                 <Link to={`/schemes/${scheme.id}`}>
-                                    <img
-                                      src={scheme.main_image}
-                                      alt={`Превью для ${scheme.title}`}
-                                      style={{ maxWidth: '200px', height: 'auto', float: 'left', marginRight: '15px' }}
-                                    />
+                                    <img src={scheme.main_image || 'https://via.placeholder.com/300x200.png?text=No+Image'} alt={scheme.title} />
+                                    <h3>{scheme.title}</h3>
                                 </Link>
-                            )}
-
-                            <div>
-                                <h3>
-                                    <Link to={`/schemes/${scheme.id}`}>
-                                        {scheme.title}
-                                    </Link>
-                                </h3>
-
-                                {/* 2. Отображаем автора и категорию как строки и добавляем проверку на их существование */}
-                                <p><strong>Автор:</strong> {scheme.author || 'Не указан'}</p>
-                                <p><strong>Категория:</strong> {scheme.category || 'Без категории'}</p>
-                                <p><strong>Теги:</strong> {scheme.tags && scheme.tags.length > 0 ? scheme.tags.join(', ') : 'Нет тегов'}</p>
+                                <p>Автор: {scheme.author?.username || 'Неизвестен'}</p>
+                                <p>Просмотров: {scheme.views_count}</p>
                             </div>
-                            <div style={{clear: 'both'}}></div>
-                        </li>
-                    ))}
-                </ul>
+                        ))}
+                    </div>
+
+                    {(nextPageUrl || prevPageUrl) && (
+                         <div className="pagination-controls">
+                            {prevPageUrl && (<button onClick={() => fetchPaginatedSchemes(prevPageUrl)}>&larr; Предыдущая</button>)}
+                            {nextPageUrl && (<button onClick={() => fetchPaginatedSchemes(nextPageUrl)}>Следующая &rarr;</button>)}
+                        </div>
+                    )}
+                </>
             ) : (
-                <p>Схем пока нет. <Link to="/create-scheme">Добавить первую схему?</Link></p>
+                 isMySchemesPage ?
+                 <p>Вы еще не добавили ни одной схемы. <Link to="/add-scheme">Хотите добавить первую?</Link></p>
+                 :
+                 <p>Схем пока нет. <Link to="/add-scheme">Добавить первую схему?</Link></p>
             )}
         </div>
     );

@@ -1,51 +1,89 @@
-    // frontend/src/App.jsx
-    import { Routes, Route, Link } from 'react-router-dom';
-    import React, { useContext } from 'react';
-    import AuthContext from './context/AuthContext';
+// frontend/src/App.jsx
 
-    import SchemeList from './components/SchemeList';
-    import SchemeDetail from './components/SchemeDetail';
-    import SchemeForm from './components/SchemeForm';
-    import LoginPage from './components/LoginPage';
-    import SchemeEditForm from './components/SchemeEditForm';
-    import './App.css';
+import React, { useContext } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 
-    function App() {
-      // Получаем данные о пользователе и функцию выхода из контекста
-      const { user, logoutUser } = useContext(AuthContext);
+// --- ИСПРАВЛЕНИЕ №1: ПРАВИЛЬНЫЙ ИМПОРТ ---
+// AuthContext импортируется по умолчанию, а AuthProvider - как именованный экспорт.
+import AuthContext, { AuthProvider } from './context/AuthContext';
 
-      return (
-        <div>
-          <header>
-            <Link to="/"><h1>Мир Вышивки</h1></Link>
-            <nav>
-              {/* Если пользователь вошел, показываем приветствие и кнопку выхода */}
-              {user ? (
-                <>
-                  <span style={{ marginLeft: '20px' }}>Привет, {user.username}!</span>
-                  <Link to="/create-scheme" style={{ marginLeft: '20px' }}>Добавить схему</Link>
-                  <button onClick={logoutUser} style={{ marginLeft: '20px' }}>Выйти</button>
-                </>
-              ) : (
-                // Если не вошел, показываем ссылку на вход
-                <Link to="/login" style={{ marginLeft: '20px' }}>Войти</Link>
-              )}
-            </nav>
-          </header>
+// Импортируем наши реальные компоненты
+import SchemeList from './components/SchemeList';
+import SchemeDetail from './components/SchemeDetail';
+import SchemeForm from './components/SchemeForm';
+import SchemeEditForm from './components/SchemeEditForm';
+import LoginPage from './components/LoginPage';
+import MySchemesPage from './pages/MySchemesPage';
 
-          <hr />
+import './App.css';
 
-          <main>
-            <Routes>
-              <Route path="/" element={<SchemeList />} />
-              <Route path="/schemes/:id" element={<SchemeDetail />} />
-              <Route path="/schemes/:id/edit" element={<SchemeEditForm />} />
-              <Route path="/create-scheme" element={<SchemeForm />} />
-              <Route path="/login" element={<LoginPage />} />
-            </Routes>
-          </main>
-        </div>
-      )
+// Этот компонент в полном порядке.
+const PrivateRoute = ({ children }) => {
+    const { user } = useContext(AuthContext);
+    if (!user) {
+        return <Navigate to="/login" />;
     }
+    return children;
+};
 
-    export default App;
+// Этот компонент тоже в полном порядке.
+function Layout({ children }) {
+    const { user, logoutUser } = useContext(AuthContext);
+    return (
+        <div>
+            <header style={{ padding: '10px 20px', borderBottom: '1px solid #ccc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h1><Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>Мир Вышивки</Link></h1>
+                <nav>
+                    {user ? (
+                        <>
+                            <span>Привет, {user.username || '!'}</span>
+                            <Link to="/my-schemes" style={{ marginLeft: '15px' }}><button>Мои схемы</button></Link>
+                            <Link to="/add-scheme" style={{ marginLeft: '15px' }}><button>Добавить схему</button></Link>
+                            <button onClick={logoutUser} style={{ marginLeft: '15px' }}>Выйти</button>
+                        </>
+                    ) : (
+                        <Link to="/login"><button>Войти</button></Link>
+                    )}
+                </nav>
+            </header>
+            <main style={{ padding: '20px' }}>
+                {children}
+            </main>
+        </div>
+    );
+}
+
+function App() {
+  // --- ИСПРАВЛЕНИЕ №2: УБИРАЕМ ДУБЛИРУЮЩИЙ <AuthProvider> ---
+  // Он уже есть в main.jsx, поэтому здесь он не нужен.
+  // Также убираем лишний <Router>, так как он тоже есть в main.jsx
+  return (
+    <Layout>
+        <Routes>
+            {/* Публичные роуты */}
+            <Route path="/" element={<SchemeList />} />
+            <Route path="/schemes/:id" element={<SchemeDetail />} />
+            <Route path="/login" element={<LoginPage />} />
+
+            {/* Приватные роуты, обернутые в PrivateRoute */}
+            <Route path="/add-scheme" element={<PrivateRoute><SchemeForm /></PrivateRoute>} />
+            <Route path="/schemes/:id/edit" element={<PrivateRoute><SchemeEditForm /></PrivateRoute>} />
+            <Route path="/my-schemes" element={<PrivateRoute><MySchemesPage /></PrivateRoute>} />
+        </Routes>
+    </Layout>
+  );
+}
+
+
+// --- ИСПРАВЛЕНИЕ №3: ЭКСПОРТИРУЕМ App С ОБОЛОЧКОЙ ---
+// Чтобы не менять main.jsx, мы экспортируем App, который сразу содержит всё необходимое.
+// Это самая чистая и правильная структура.
+export default function AppWrapper() {
+    return (
+        <Router>
+            <AuthProvider>
+                <App />
+            </AuthProvider>
+        </Router>
+    );
+}
