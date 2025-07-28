@@ -165,3 +165,265 @@ textarea:focus {
 .scheme-card-link:hover {
   text-decoration: none; /* Убираем подчеркивание при наведении */
 }
+
+
+/* --- Стили для страницы логина (LoginPage) --- */
+.login-container {
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 40px;
+  background-color: var(--bg-medium);
+  border-radius: var(--border-radius-main);
+  text-align: center;
+}
+
+.login-container h2 {
+  margin-top: 0;
+  margin-bottom: 30px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.form-button {
+  width: 100%;
+  padding: 15px;
+  font-size: 1.1rem;
+  margin-top: 10px;
+}
+
+.register-link {
+    margin-top: 20px;
+    color: var(--text-secondary);
+}
+
+.register-link a {
+    font-weight: bold;
+}
+
+
+/* --- Дополнительные стили для SchemeList --- */
+
+/* Стили для панели фильтров */
+.filter-panel {
+  display: flex;
+  flex-wrap: wrap; /* Позволит переноситься на новую строку на маленьких экранах */
+  gap: 15px;
+  margin-bottom: 30px;
+  background-color: var(--bg-medium);
+  padding: 20px;
+  border-radius: var(--border-radius-main);
+}
+
+.filter-panel input, .filter-panel select {
+  flex-grow: 1; /* Поля будут растягиваться */
+  min-width: 150px; /* Минимальная ширина для полей */
+}
+
+/* Стили для иконок в карточке */
+.scheme-card-stats {
+  margin-top: auto; /* Прижимает блок к низу карточки */
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+/* Стили для кнопок пагинации */
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+/* --- Стили для блока комментариев --- */
+.comments-section {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+}
+
+.comment-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 30px;
+}
+
+.comment-item {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.comment-author-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--bg-light);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  flex-shrink: 0; /* Не сжиматься, если текст длинный */
+  text-transform: uppercase;
+}
+
+.comment-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+.comment-author-name {
+  font-weight: bold;
+  color: var(--text-primary);
+}
+
+.comment-date {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.comment-text {
+  margin: 0;
+  line-height: 1.5;
+  white-space: pre-wrap; /* Сохраняет переносы строк из текста */
+}
+
+/* Стили для формы добавления комментария */
+.comment-form {
+    margin-top: 15px;
+}
+
+.comment-form textarea {
+    min-height: 80px;
+    margin-bottom: 10px;
+}
+
+/* --- Стили для выпадающего меню пользователя --- */
+.user-menu {
+  position: relative; /* Необходимо для позиционирования выпадающего меню */
+}
+
+.user-avatar-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--accent-green);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border: 2px solid var(--bg-light);
+  cursor: pointer;
+  padding: 0;
+  text-transform: uppercase;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 10px); /* 100% высоты кнопки + 10px отступ */
+  right: 0;
+  background-color: var(--bg-medium);
+  border-radius: var(--border-radius-main);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  width: 200px;
+  z-index: 100;
+  overflow: hidden;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.dropdown-header {
+  padding: 10px 15px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 5px;
+}
+
+.dropdown-header strong {
+    color: var(--text-primary);
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 10px 15px;
+  color: var(--text-primary);
+  text-align: left;
+  background: none;
+  border: none;
+  font-size: 1rem;
+}
+
+.dropdown-item:hover {
+  background-color: var(--accent-green);
+  color: white !important; /* Важно для перезаписи стилей ссылок */
+  text-decoration: none;
+}
+
+/* Отдельный стиль для кнопки Выйти, т.к. это не ссылка */
+.dropdown-item-logout {
+  cursor: pointer;
+}
+
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-nav {
+    display: flex;
+    align-items: center;
+    gap: 20px; /* Расстояние между элементами в навигации */
+}
+
+/* Стиль для простых ссылок в навигации */
+.nav-link {
+    color: var(--text-secondary);
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+.nav-link:hover {
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+/* Стиль для кнопок-ссылок в навигации */
+.nav-button {
+    background-color: var(--accent-green);
+    color: white !important;
+    padding: 8px 16px;
+    border-radius: var(--border-radius-main);
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+.nav-button:hover {
+    background-color: var(--accent-green-hover);
+    text-decoration: none;
+}

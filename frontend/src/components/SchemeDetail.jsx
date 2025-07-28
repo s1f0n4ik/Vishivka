@@ -128,45 +128,52 @@ function SchemeDetail() {
       <p><strong>Автор:</strong> {scheme.author ? <Link to={`/profile/${scheme.author.username}`}>{scheme.author.username}</Link> : 'Не указан'}</p>
       {/* ... и так далее ... */}
 
-      <hr />
+      <hr style={{ borderColor: 'var(--border-color)', margin: '30px 0' }}/>
 
       {/* Секция комментариев */}
       <div className="comments-section">
-        <h3>Комментарии ({comments.length})</h3>
+            <h3>Комментарии ({comments.length})</h3>
 
-        {user && (
-          <form onSubmit={handleCommentSubmit}>
-            <textarea
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Напишите ваш комментарий..."
-              rows="3"
-              required
-              disabled={isSubmitting}
-            />
-            <button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Отправка...' : 'Отправить'}
-            </button>
-          </form>
-        )}
-        {!user && <p>Чтобы оставить комментарий, пожалуйста, <a href="/login">войдите</a>.</p>}
+            {user ? (
+                <form onSubmit={handleCommentSubmit} className="comment-form">
+                    <textarea
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        placeholder="Напишите ваш комментарий..."
+                        required
+                        disabled={isSubmitting}
+                    />
+                    <button type="submit" disabled={isSubmitting} style={{ marginTop: '10px' }}>
+                        {isSubmitting ? 'Отправка...' : 'Отправить'}
+                    </button>
+                </form>
+            ) : (
+                <p>Чтобы оставить комментарий, пожалуйста, <Link to="/login">войдите</Link>.</p>
+            )}
 
-        <div className="comments-list">
-          {comments.length > 0 ? (
-            comments.map((comment) => (
-              <div key={comment.id} className="comment">
-                <p>
-                  <strong>{comment.author.username}</strong>
-                  <small> - {new Date(comment.created_at).toLocaleString()}</small>
-                </p>
-                <p>{comment.text}</p>
-              </div>
-            ))
-          ) : (
-            <p>Комментариев пока нет. Будьте первым!</p>
-          )}
+            <ul className="comment-list">
+                {comments.length > 0 ? (
+                    comments.map(comment => (
+                        <li key={comment.id} className="comment-item">
+                            <div className="comment-author-avatar">
+                                {comment.author.username.charAt(0)}
+                            </div>
+                            <div className="comment-content">
+                                <div className="comment-header">
+                                    <span className="comment-author-name">{comment.author.username}</span>
+                                    <span className="comment-date">
+                                        {new Date(comment.created_at).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' })}
+                                    </span>
+                                </div>
+                                <p className="comment-text">{comment.text}</p>
+                            </div>
+                        </li>
+                    ))
+                ) : (
+                    <p>Комментариев пока нет. Будьте первым!</p>
+                )}
+            </ul>
         </div>
-      </div>
     </div>
   );
 }

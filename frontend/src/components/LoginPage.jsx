@@ -20,39 +20,34 @@ const LoginPage = () => {
     };
 
     return (
-        <div>
-        <form onSubmit={handleSubmit}>
-            <h2>Вход в систему</h2>
-            <div>
-                {/* --- ИЗМЕНЕНИЕ 3 --- */}
-                {/* Меняем поля для ввода email */}
-                <label htmlFor="email">Email:</label>
-                <input
-                    type="email"
-                    id="email"
-                    value={email} // Контролируемый компонент
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Введите email"
-                    required
-                />
-            </div>
-            <div>
-                <label htmlFor="password">Пароль:</label>
-                <input
-                    type="password"
-                    id="password"
-                    value={password} // Контролируемый компонент
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Введите пароль"
-                    required
-                />
-            </div>
-            <button type="submit">Войти</button>
-
-        </form>
-        <p style={{ marginTop: '15px', textAlign: 'center' }}>
-            Еще нет аккаунта? <Link to="/register">Зарегистрируйтесь</Link>
-        </p>
+        <div className="login-container">
+            <h2>Вход в аккаунт</h2>
+            <form onSubmit={handleSubmit}>
+                <div className="form-group">
+                    <label htmlFor="email">Email</label>
+                    <input
+                        type="email"
+                        id="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                    />
+                </div>
+                <div className="form-group">
+                    <label htmlFor="password">Пароль</label>
+                    <input
+                        type="password"
+                        id="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                    />
+                </div>
+                <button type="submit" className="form-button">Войти</button>
+            </form>
+            <p className="register-link">
+                Еще нет аккаунта? <Link to="/register">Зарегистрируйтесь</Link>
+            </p>
         </div>
     );
 };

@@ -17,8 +17,10 @@ import MySchemesPage from './pages/MySchemesPage';
 import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
 import FavoritedSchemesPage from './pages/FavoritedSchemesPage';
+import UserMenu from './components/UserMenu';
 
 import './App.css';
+import logo from './assets/logo.png'
 
 // Этот компонент в полном порядке.
 const PrivateRoute = ({ children }) => {
@@ -31,34 +33,41 @@ const PrivateRoute = ({ children }) => {
 
 function Layout({ children }) {
     const { user, logoutUser } = useContext(AuthContext);
-    // --- ДОБАВЛЯЕМ ЛОГ ---
-    console.log("Layout рендерится с user:", user);
     return (
-        <div>
-            <header style={{ padding: '10px 20px', borderBottom: '1px solid #ccc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h1><Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>Мир Вышивки</Link></h1>
-                <nav>
-                    {user ? (
-                        <>
-                            <Link to={`/profile/${user.username}`} style={{ marginRight: '15px', fontWeight: 'bold' }}>
-                                Привет, {user.username || '!'}
-                            </Link>
-                            <Link to="/favorites" style={{ marginLeft: '15px' }}><button>❤️ Избранное</button></Link>
-                            <Link to="/my-schemes" style={{ marginLeft: '15px' }}><button>Мои схемы</button></Link>
-                            <Link to="/add-scheme" style={{ marginLeft: '15px' }}><button>Добавить схему</button></Link>
-                            <button onClick={logoutUser} style={{ marginLeft: '15px' }}>Выйти</button>
-                        </>
-                    ) : (
-                        <Link to="/login"><button>Войти</button></Link>
-                    )}
-                </nav>
+        <>
+            <header className="app-header">
+                <div className="container header-content">
+                    <Link to="/">
+                        <img src={logo} alt="Мир Вышивки - логотип" className="header-logo" />
+                    </Link>
+                    <nav className="header-nav">
+                        {user ? (
+                            <>
+                                {/* Основные действия для залогиненного пользователя */}
+                                <Link to="/favorites" className="nav-link">❤️Избранное❤️</Link>
+                                <Link to="/add-scheme" className="nav-button">Добавить схему</Link>
+
+                                {/* Наш новый компонент меню */}
+                                <UserMenu user={user} onLogout={logoutUser} />
+                            </>
+                        ) : (
+                            <>
+                                {/* Ссылки для гостя */}
+                                <Link to="/login" className="nav-link">Войти</Link>
+                                <Link to="/register" className="nav-button">Регистрация</Link>
+                            </>
+                        )}
+                    </nav>
+                </div>
             </header>
-            <main style={{ padding: '20px' }}>
+            {/* Оборачиваем основной контент в .container для центрирования */}
+            <main className="container" style={{ paddingTop: '30px', paddingBottom: '30px' }}>
                 {children}
             </main>
-        </div>
+        </>
     );
 }
+
 
 function App() {
   // Убираем лишнюю проверку `if (loading)`, так как AuthProvider теперь делает это за нас.
