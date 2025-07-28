@@ -12,6 +12,11 @@ function ProfilePage() {
     const [error, setError] = useState(null);
 
     useEffect(() => {
+        if (!username) {
+            setError("Имя пользователя не указано.");
+            setLoading(false);
+            return; // Прекращаем выполнение эффекта
+        }
         const fetchProfile = async () => {
             setLoading(true);
             try {

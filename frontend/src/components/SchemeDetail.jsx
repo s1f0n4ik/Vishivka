@@ -74,7 +74,13 @@ function SchemeDetail() {
       {/* ----- ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ ЗДЕСЬ ----- */}
       {/* Используем "опциональную цепочку" (?.) и оператор "nullish coalescing" (??) */}
       {/* Это безопасно выведет имя, если оно есть, или текст-заглушку, если нет */}
-      <p><strong>Автор:</strong> {scheme.author?.username ?? 'Не указан'}</p>
+      <p><strong>Автор:</strong> {scheme.author ? (
+            <Link to={`/profile/${scheme.author.username}`}>
+                {scheme.author.username}
+            </Link>
+        ) : (
+            'Не указан'
+        )}</p>
       <p><strong>Категория:</strong> {scheme.category?.name ?? 'Не указана'}</p>
       {/* ------------------------------------------- */}
 

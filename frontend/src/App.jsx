@@ -28,9 +28,10 @@ const PrivateRoute = ({ children }) => {
     return children;
 };
 
-// Этот компонент тоже в полном порядке.
 function Layout({ children }) {
     const { user, logoutUser } = useContext(AuthContext);
+    // --- ДОБАВЛЯЕМ ЛОГ ---
+    console.log("Layout рендерится с user:", user);
     return (
         <div>
             <header style={{ padding: '10px 20px', borderBottom: '1px solid #ccc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -38,7 +39,9 @@ function Layout({ children }) {
                 <nav>
                     {user ? (
                         <>
-                            <span>Привет, {user.username || '!'}</span>
+                            <Link to={`/profile/${user.username}`} style={{ marginRight: '15px', fontWeight: 'bold' }}>
+                                Привет, {user.username || '!'}
+                            </Link>
                             <Link to="/my-schemes" style={{ marginLeft: '15px' }}><button>Мои схемы</button></Link>
                             <Link to="/add-scheme" style={{ marginLeft: '15px' }}><button>Добавить схему</button></Link>
                             <button onClick={logoutUser} style={{ marginLeft: '15px' }}>Выйти</button>
@@ -56,9 +59,12 @@ function Layout({ children }) {
 }
 
 function App() {
-  // --- ИСПРАВЛЕНИЕ №2: УБИРАЕМ ДУБЛИРУЮЩИЙ <AuthProvider> ---
-  // Он уже есть в main.jsx, поэтому здесь он не нужен.
-  // Также убираем лишний <Router>, так как он тоже есть в main.jsx
+  // Убираем лишнюю проверку `if (loading)`, так как AuthProvider теперь делает это за нас.
+  // Убираем лишнее получение user и logoutUser, так как они нужны только в Layout.
+  const { loading } = useContext(AuthContext); // Можно даже эту строку убрать, но оставим для ясности
+
+  console.log("App рендерится с loading:", loading);
+
   return (
     <Layout>
         <Routes>
@@ -67,6 +73,7 @@ function App() {
             <Route path="/schemes/:id" element={<SchemeDetail />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/profile/:username" element={<ProfilePage />} />
 
             {/* Приватные роуты, обернутые в PrivateRoute */}
             <Route path="/add-scheme" element={<PrivateRoute><SchemeForm /></PrivateRoute>} />

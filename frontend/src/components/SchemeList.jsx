@@ -126,7 +126,16 @@ function SchemeList({ schemes: propSchemes, isMySchemesPage = false }) {
                                     <img src={scheme.main_image || 'https://via.placeholder.com/300x200.png?text=No+Image'} alt={scheme.title} />
                                     <h3>{scheme.title}</h3>
                                 </Link>
-                                <p>Автор: {scheme.author?.username || 'Неизвестен'}</p>
+                                <p>
+                                    Автор:{' '}
+                                    {scheme.author ? (
+                                        <Link to={`/profile/${scheme.author.username}`}>
+                                            {scheme.author.username}
+                                        </Link>
+                                    ) : (
+                                        'Неизвестен'
+                                    )}
+                                </p>
                                 <p>Просмотров: {scheme.views_count}</p>
                             </div>
                         ))}

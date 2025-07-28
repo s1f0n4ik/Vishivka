@@ -2,7 +2,9 @@
 
 from rest_framework import serializers
 from .models import User, Profile
-from api.serializers import EmbroiderySchemeListSerializer
+# --- УДАЛЯЕМ ЭТУ СТРОКУ ---
+# Мы больше не импортируем сериализатор схемы на верхнем уровне
+# from api.serializers import EmbroiderySchemeListSerializer
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -26,7 +28,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
     Включает в себя список публичных схем пользователя.
     """
     profile = ProfileSerializer(read_only=True)
-    # Используем SerializerMethodField для гибкого контроля над тем, что отдаем
     schemes = serializers.SerializerMethodField()
 
     class Meta:
@@ -38,10 +39,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
         Возвращает список только ПУБЛИЧНЫХ схем пользователя.
         'obj' - это экземпляр модели User.
         """
-        # Фильтруем схемы по автору и статусу видимости
+        # --- ДОБАВЛЯЕМ ЛОКАЛЬНЫЙ ИМПОРТ ЗДЕСЬ ---
+        # Этот импорт происходит только при вызове метода,
+        # разрывая циклическую зависимость при запуске приложения.
+        from api.serializers import EmbroiderySchemeListSerializer
+
         public_schemes = obj.schemes.filter(visibility='PUB')
-        # Сериализуем отфильтрованный список, используя готовый сериализатор для списков
-        # request передается в контекст для построения полных URL изображений
         request = self.context.get('request')
         serializer = EmbroiderySchemeListSerializer(public_schemes, many=True, context={'request': request})
         return serializer.data

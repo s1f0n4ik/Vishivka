@@ -73,6 +73,12 @@ class EmbroideryScheme(models.Model):
         related_name='schemes',
         verbose_name=_('author')
     )
+    favorited_by = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='favorite_schemes',
+        blank=True,  # Может быть пустым
+        verbose_name='В избранном у'
+    )
     description = models.TextField(_('description'), blank=True)
 
     # Для основного изображения/превью. Загрузка в 'schemes/main_images/YYYY/MM/DD/'
