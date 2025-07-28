@@ -17,6 +17,7 @@ router_v1.register(r'tags', TagViewSet, basename='tags')
 router_v1.register(r'schemes', EmbroiderySchemeViewSet, basename='schemes')
 
 
+
 urlpatterns = [
     path('', include(router_v1.urls)),
 ]

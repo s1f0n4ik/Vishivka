@@ -1,6 +1,7 @@
     // frontend/src/components/LoginPage.jsx
     import React, { useState, useContext } from 'react';
     import AuthContext from '../context/AuthContext';
+    import { useNavigate, Link } from 'react-router-dom';
 
     const LoginPage = () => {
         const [username, setUsername] = useState('');
@@ -14,6 +15,7 @@
         };
 
         return (
+            <div>
             <form onSubmit={handleSubmit}>
                 <h2>Вход в систему</h2>
                 <div>
@@ -37,7 +39,12 @@
                     />
                 </div>
                 <button type="submit">Войти</button>
+
             </form>
+            <p style={{ marginTop: '15px', textAlign: 'center' }}>
+                Еще нет аккаунта? <Link to="/register">Зарегистрируйтесь</Link>
+            </p>
+            </div>
         );
     };
 

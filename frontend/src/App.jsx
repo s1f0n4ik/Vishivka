@@ -14,6 +14,8 @@ import SchemeForm from './components/SchemeForm';
 import SchemeEditForm from './components/SchemeEditForm';
 import LoginPage from './components/LoginPage';
 import MySchemesPage from './pages/MySchemesPage';
+import RegisterPage from './pages/RegisterPage';
+import ProfilePage from './pages/ProfilePage';
 
 import './App.css';
 
@@ -64,6 +66,7 @@ function App() {
             <Route path="/" element={<SchemeList />} />
             <Route path="/schemes/:id" element={<SchemeDetail />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
 
             {/* Приватные роуты, обернутые в PrivateRoute */}
             <Route path="/add-scheme" element={<PrivateRoute><SchemeForm /></PrivateRoute>} />
@@ -75,9 +78,6 @@ function App() {
 }
 
 
-// --- ИСПРАВЛЕНИЕ №3: ЭКСПОРТИРУЕМ App С ОБОЛОЧКОЙ ---
-// Чтобы не менять main.jsx, мы экспортируем App, который сразу содержит всё необходимое.
-// Это самая чистая и правильная структура.
 export default function AppWrapper() {
     return (
         <Router>

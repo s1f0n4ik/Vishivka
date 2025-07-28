@@ -14,6 +14,8 @@ from .serializers import (
     EmbroiderySchemeCreateSerializer,
     EmbroiderySchemeUpdateSerializer
 )
+from rest_framework import filters
+from django_filters.rest_framework import DjangoFilterBackend
 
 
 class LicenseViewSet(viewsets.ModelViewSet):
@@ -32,6 +34,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    pagination_class = None
 
 
 class TagViewSet(viewsets.ModelViewSet):
@@ -41,9 +44,18 @@ class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    pagination_class = None
 
 
 class EmbroiderySchemeViewSet(viewsets.ModelViewSet):
+    # queryset = EmbroideryScheme.objects.filter(visibility='public').select_related('author', 'category').prefetch_related('tags')
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+
+    # Поля для точной фильтрации (например, ?category=1 или ?tags=3)
+    filterset_fields = ('category', 'tags', 'difficulty')
+
+    search_fields = ('title', 'description')
+
     queryset = EmbroideryScheme.objects.all().order_by('-created_at')
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
 

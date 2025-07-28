@@ -10,16 +10,27 @@ class LicenseSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+# class CategorySerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Category
+#         fields = '__all__'
+#
+#
+# class TagSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Tag
+#         fields = ('id', 'name', 'slug')
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = '__all__'
+        fields = ('id', 'name')
 
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
-        fields = ('id', 'name', 'slug')
+        fields = ('id', 'name')
 
 
 class SchemeImageSerializer(serializers.ModelSerializer):
@@ -139,3 +150,5 @@ class EmbroiderySchemeUpdateSerializer(serializers.ModelSerializer):
             SchemeFile.objects.create(scheme=instance, file=scheme_file_data, description="Обновленный файл")
 
         return super().update(instance, validated_data)
+
+
