@@ -137,6 +137,12 @@ function SchemeList({ schemes: propSchemes, isMySchemesPage = false }) {
                                     )}
                                 </p>
                                 <p>Просмотров: {scheme.views_count}</p>
+                                <div className="favorites-info" style={{ marginTop: 'auto', paddingTop: '10px' }}>
+                                    <span>
+                                        {scheme.is_favorited ? '❤️' : '🤍'}{' '}
+                                        {scheme.favorites_count}
+                                    </span>
+                                </div>
                             </div>
                         ))}
                     </div>

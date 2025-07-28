@@ -16,6 +16,7 @@ import LoginPage from './components/LoginPage';
 import MySchemesPage from './pages/MySchemesPage';
 import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
+import FavoritedSchemesPage from './pages/FavoritedSchemesPage';
 
 import './App.css';
 
@@ -42,6 +43,7 @@ function Layout({ children }) {
                             <Link to={`/profile/${user.username}`} style={{ marginRight: '15px', fontWeight: 'bold' }}>
                                 Привет, {user.username || '!'}
                             </Link>
+                            <Link to="/favorites" style={{ marginLeft: '15px' }}><button>❤️ Избранное</button></Link>
                             <Link to="/my-schemes" style={{ marginLeft: '15px' }}><button>Мои схемы</button></Link>
                             <Link to="/add-scheme" style={{ marginLeft: '15px' }}><button>Добавить схему</button></Link>
                             <button onClick={logoutUser} style={{ marginLeft: '15px' }}>Выйти</button>
@@ -79,6 +81,7 @@ function App() {
             <Route path="/add-scheme" element={<PrivateRoute><SchemeForm /></PrivateRoute>} />
             <Route path="/schemes/:id/edit" element={<PrivateRoute><SchemeEditForm /></PrivateRoute>} />
             <Route path="/my-schemes" element={<PrivateRoute><MySchemesPage /></PrivateRoute>} />
+            <Route path="/favorites" element={<PrivateRoute><FavoritedSchemesPage /></PrivateRoute>} />
         </Routes>
     </Layout>
   );

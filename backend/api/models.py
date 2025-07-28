@@ -214,3 +214,30 @@ class SchemeImage(models.Model):
         verbose_name = _('scheme image')
         verbose_name_plural = _('scheme images')
         ordering = ['-uploaded_at']
+
+
+class Comment(models.Model):
+    """Модель для комментариев к схемам."""
+    scheme = models.ForeignKey(
+        EmbroideryScheme,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name=_('embroidery scheme')
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name=_('author')
+    )
+    text = models.TextField(_('text'))
+    created_at = models.DateTimeField(_('created at'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('updated at'), auto_now=True)
+
+    def __str__(self):
+        return f'Comment by {self.author} on {self.scheme}'
+
+    class Meta:
+        verbose_name = _('comment')
+        verbose_name_plural = _('comments')
+        ordering = ['created_at'] # Старые комментарии сверху

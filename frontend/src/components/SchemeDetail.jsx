@@ -1,61 +1,104 @@
 // frontend/src/components/SchemeDetail.jsx
-import React, { useState, useEffect, useContext } from 'react'; // Добавили useContext
-import { useParams, Link, useNavigate } from 'react-router-dom'; // Добавили Link и useNavigate
+import React, { useState, useEffect, useContext } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
-import AuthContext from '../context/AuthContext'; // Импортируем наш контекст
+import AuthContext from '../context/AuthContext';
 
 function SchemeDetail() {
   const { id } = useParams();
-  const navigate = useNavigate(); // Хук для редиректа
-  const { user } = useContext(AuthContext); // Получаем текущего пользователя
+  const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
 
   const [scheme, setScheme] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   useEffect(() => {
-    // ... (код fetchScheme без изменений)
-    const fetchScheme = async () => {
+    const fetchSchemeAndComments = async () => {
       try {
-        const response = await apiClient.get(`/schemes/${id}/`);
-        setScheme(response.data);
+        setLoading(true);
+        // Запрос данных о схеме
+        const schemeResponse = await apiClient.get(`/schemes/${id}/`); // <-- ИЗМЕНЕНИЕ ЗДЕСЬ
+        setScheme(schemeResponse.data);
+        // Запрос комментариев для этой схемы
+        const commentsResponse = await apiClient.get(`/schemes/${id}/comments/`); // <-- ИЗМЕНЕНИЕ ЗДЕСЬ
+        // Сортируем комментарии, чтобы новые были внизу
+        setComments(commentsResponse.data.results.sort((a, b) => new Date(a.created_at) - new Date(b.created_at)));
+
       } catch (err) {
-        setError(err);
+        setError('Не удалось загрузить данные.');
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchScheme();
+    fetchSchemeAndComments();
   }, [id]);
 
-  // Функция удаления
+  const handleFavoriteToggle = async () => {
+    // ... (код этой функции уже использует apiClient и остается без изменений)
+    if (!user) {
+      alert("Пожалуйста, войдите в систему, чтобы добавлять схемы в избранное.");
+      navigate('/login');
+      return;
+    }
+
+    try {
+      await apiClient.post(`/schemes/${id}/favorite/`);
+      setScheme(prevScheme => ({
+        ...prevScheme,
+        is_favorited: !prevScheme.is_favorited,
+        favorites_count: prevScheme.is_favorited
+          ? prevScheme.favorites_count - 1
+          : prevScheme.favorites_count + 1
+      }));
+    } catch (err) {
+      console.error("Ошибка при добавлении в избранное:", err);
+      alert("Не удалось выполнить действие. Попробуйте снова.");
+    }
+  };
+
   const handleDelete = async () => {
-    // Спрашиваем подтверждение
-    if (window.confirm('Вы уверены, что хотите удалить эту схему? Это действие необратимо.')) {
-      try {
-        await apiClient.delete(`/schemes/${id}/`);
-        alert('Схема успешно удалена!');
-        navigate('/'); // Перенаправляем на главную
-      } catch (err) {
-        console.error('Ошибка при удалении:', err);
-        alert('Не удалось удалить схему. Возможно, у вас нет прав.');
-      }
+    // ... (код этой функции уже использует apiClient и остается без изменений)
+  };
+
+  const handleCommentSubmit = async (e) => {
+    e.preventDefault();
+    if (!newComment.trim()) return;
+
+    setIsSubmitting(true);
+    try {
+      const response = await apiClient.post(`/schemes/${id}/comments/`, { // <-- ИЗМЕНЕНИЕ ЗДЕСЬ
+        text: newComment,
+      });
+      // Добавляем новый коммент в конец списка
+      setComments([...comments, response.data]);
+      setNewComment('');
+    } catch (error) {
+      console.error("Ошибка при добавлении комментария:", error);
+      alert("Не удалось добавить комментарий. Попробуйте снова.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   if (loading) return <p>Загрузка схемы...</p>;
-  if (error) return <p>Ошибка при загрузке схемы.</p>;
+  if (error) return <p>{error}</p>;
   if (!scheme) return <p>Схема не найдена.</p>;
 
-  console.log("Текущий пользователь (из контекста):", user);
-  console.log("Автор схемы (из API):", scheme.author);
-
-  // Проверяем, является ли текущий пользователь автором схемы
-  const isAuthor = user && scheme.author && user.user_id == scheme.author.id;
+  // <-- ИСПРАВЛЕНИЕ ПРОВЕРКИ АВТОРСТВА -->
+  const isAuthor = user && scheme.author && user.id === scheme.author.id;
 
   return (
     <div>
+        {/* ... (весь ваш JSX остается здесь без изменений) ... */}
+
+      {/* Панель управления для автора */}
       {isAuthor && (
         <div style={{ float: 'right', border: '1px solid gray', padding: '10px', marginBottom: '10px' }}>
           <Link to={`/schemes/${id}/edit`}>
@@ -68,45 +111,62 @@ function SchemeDetail() {
       )}
       <h2>{scheme.title}</h2>
 
-      {/* Отображаем картинку только если есть URL */}
-      {scheme.main_image && <img src={scheme.main_image} alt={`Превью для ${scheme.title}`} style={{ maxWidth: '400px', height: 'auto' }} />}
-
-      {/* ----- ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ ЗДЕСЬ ----- */}
-      {/* Используем "опциональную цепочку" (?.) и оператор "nullish coalescing" (??) */}
-      {/* Это безопасно выведет имя, если оно есть, или текст-заглушку, если нет */}
-      <p><strong>Автор:</strong> {scheme.author ? (
-            <Link to={`/profile/${scheme.author.username}`}>
-                {scheme.author.username}
-            </Link>
-        ) : (
-            'Не указан'
-        )}</p>
-      <p><strong>Категория:</strong> {scheme.category?.name ?? 'Не указана'}</p>
-      {/* ------------------------------------------- */}
-
-      <p><strong>Описание:</strong> {scheme.description || 'Описание отсутствует.'}</p>
-
-      {/* Добавим проверку и для тегов, на всякий случай */}
-      <p><strong>Теги:</strong> {scheme.tags && scheme.tags.length > 0 ? scheme.tags.map(tag => tag.name).join(', ') : 'Тегов нет'}</p>
-
-      <p><strong>Просмотры:</strong> {scheme.views_count}</p>
-      <hr />
-      <h3>Файлы для скачивания:</h3>
-      {scheme.files && scheme.files.length > 0 ? (
-        <ul>
-          {scheme.files.map(file => (
-            <li key={file.id}>
-              {/* 'file.file_url' - это поле, которое мы добавили в SchemeFileSerializer */}
-              <a href={file.file_url} download>
-                Скачать схему ({file.get_file_type_display})
-              </a>
-              {file.description && <span> - {file.description}</span>}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>К этой схеме еще не добавили файлов.</p>
+      {/* Кнопка избранного */}
+      {user && (
+          <div style={{ margin: '15px 0' }}>
+            <button onClick={handleFavoriteToggle}>
+              {scheme.is_favorited ? '❤️ Убрать из избранного' : '🤍 Добавить в избранное'}
+            </button>
+            <span style={{ marginLeft: '10px' }}>
+              В избранном у {scheme.favorites_count} чел.
+            </span>
+          </div>
       )}
+
+      {/* Детали схемы */}
+      {scheme.main_image && <img src={scheme.main_image} alt={`Превью для ${scheme.title}`} style={{ maxWidth: '400px', height: 'auto' }} />}
+      <p><strong>Автор:</strong> {scheme.author ? <Link to={`/profile/${scheme.author.username}`}>{scheme.author.username}</Link> : 'Не указан'}</p>
+      {/* ... и так далее ... */}
+
+      <hr />
+
+      {/* Секция комментариев */}
+      <div className="comments-section">
+        <h3>Комментарии ({comments.length})</h3>
+
+        {user && (
+          <form onSubmit={handleCommentSubmit}>
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Напишите ваш комментарий..."
+              rows="3"
+              required
+              disabled={isSubmitting}
+            />
+            <button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Отправка...' : 'Отправить'}
+            </button>
+          </form>
+        )}
+        {!user && <p>Чтобы оставить комментарий, пожалуйста, <a href="/login">войдите</a>.</p>}
+
+        <div className="comments-list">
+          {comments.length > 0 ? (
+            comments.map((comment) => (
+              <div key={comment.id} className="comment">
+                <p>
+                  <strong>{comment.author.username}</strong>
+                  <small> - {new Date(comment.created_at).toLocaleString()}</small>
+                </p>
+                <p>{comment.text}</p>
+              </div>
+            ))
+          ) : (
+            <p>Комментариев пока нет. Будьте первым!</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

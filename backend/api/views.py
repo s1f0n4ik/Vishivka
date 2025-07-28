@@ -1,10 +1,10 @@
 # api/views.py
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from .permissions import IsAuthorOrReadOnly
-from .models import License, Category, Tag, EmbroideryScheme
+from .models import License, Category, Tag, EmbroideryScheme, Comment
 from .serializers import (
     LicenseSerializer,
     CategorySerializer,
@@ -12,10 +12,12 @@ from .serializers import (
     EmbroiderySchemeListSerializer,
     EmbroiderySchemeDetailSerializer,
     EmbroiderySchemeCreateSerializer,
-    EmbroiderySchemeUpdateSerializer
+    EmbroiderySchemeUpdateSerializer,
+    CommentSerializer
 )
 from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
+from django.shortcuts import get_object_or_404
 
 
 class LicenseViewSet(viewsets.ModelViewSet):
@@ -47,6 +49,24 @@ class TagViewSet(viewsets.ModelViewSet):
     pagination_class = None
 
 
+class CommentViewSet(viewsets.ModelViewSet):
+    """ViewSet для комментариев к схемам."""
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly] #, IsAuthorOrReadOnly] <-- Пока закомментируем права
+
+    def get_queryset(self):
+        # Фильтруем комментарии по ID схемы из URL
+        scheme_pk = self.kwargs.get('scheme_pk')
+        return Comment.objects.filter(scheme_id=scheme_pk)
+
+    def perform_create(self, serializer):
+        # При создании комментария автоматически подставляем автора и схему
+        scheme_pk = self.kwargs.get('scheme_pk')
+        scheme = get_object_or_404(EmbroideryScheme, pk=scheme_pk)
+        serializer.save(author=self.request.user, scheme=scheme)
+
+
 class EmbroiderySchemeViewSet(viewsets.ModelViewSet):
     # queryset = EmbroideryScheme.objects.filter(visibility='public').select_related('author', 'category').prefetch_related('tags')
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
@@ -66,9 +86,28 @@ class EmbroiderySchemeViewSet(viewsets.ModelViewSet):
             return EmbroiderySchemeCreateSerializer
         if self.action == 'update' or self.action == 'partial_update':
             return EmbroiderySchemeUpdateSerializer
-        if self.action == 'my':
+        if self.action == 'my' or self.action == 'favorited':
             return EmbroiderySchemeListSerializer
         return EmbroiderySchemeDetailSerializer
+
+    @action(
+        detail=True,  # Действие для конкретного объекта (схемы)
+        methods=['post'],
+        permission_classes=[permissions.IsAuthenticated]  # Только для авторизованных
+    )
+    def favorite(self, request, pk=None):
+        """Добавляет или удаляет схему из избранного текущего пользователя."""
+        scheme = self.get_object()
+        user = request.user
+
+        if user in scheme.favorited_by.all():
+            # Если уже в избранном - удаляем
+            scheme.favorited_by.remove(user)
+            return Response({'status': 'removed from favorites'}, status=status.HTTP_200_OK)
+        else:
+            # Если нет в избранном - добавляем
+            scheme.favorited_by.add(user)
+            return Response({'status': 'added to favorites'}, status=status.HTTP_200_OK)
 
     def get_queryset(self):
         """
@@ -79,6 +118,24 @@ class EmbroiderySchemeViewSet(viewsets.ModelViewSet):
         if self.action == 'list':
             return EmbroideryScheme.objects.filter(visibility='PUB').order_by('-created_at')
         return EmbroideryScheme.objects.all().order_by('-created_at')
+
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def favorited(self, request):
+        """
+        Возвращает список схем, добавленных текущим пользователем в избранное.
+        """
+        # queryset = self.get_queryset().filter(favorited_by=request.user) # Это почти правильно, но get_queryset уже фильтрует по 'PUB', а мы хотим видеть все свои избранные
+        # Правильный вариант - напрямую из модели
+        favorited_schemes = EmbroideryScheme.objects.filter(favorited_by=request.user)
+
+        # Пагинация
+        page = self.paginate_queryset(favorited_schemes)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(favorited_schemes, many=True)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def my(self, request):

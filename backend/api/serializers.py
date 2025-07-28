@@ -1,7 +1,7 @@
 # backend/api/serializers.py
 from users.serializers import UserSerializer
 from rest_framework import serializers
-from .models import License, Category, Tag, EmbroideryScheme, SchemeFile, SchemeImage
+from .models import License, Category, Tag, EmbroideryScheme, SchemeFile, SchemeImage, Comment
 
 
 class LicenseSerializer(serializers.ModelSerializer):
@@ -43,16 +43,29 @@ class SchemeImageSerializer(serializers.ModelSerializer):
 
 # Сериализатор для СПИСКА схем (краткая информация)
 class EmbroiderySchemeListSerializer(serializers.ModelSerializer):
-    # --- ГЛАВНОЕ ИСПРАВЛЕНИЕ ЗДЕСЬ ---
-    # Заменяем StringRelatedField на вложенный UserSerializer,
-    # чтобы фронтенд получал объект { "username": "..." }
     author = UserSerializer(read_only=True)
     category = serializers.StringRelatedField()
     tags = serializers.StringRelatedField(many=True)
+    is_favorited = serializers.SerializerMethodField()
+    favorites_count = serializers.SerializerMethodField()
 
     class Meta:
         model = EmbroideryScheme
-        fields = ('id', 'title', 'main_image', 'author', 'category', 'tags', 'difficulty', 'views_count', 'created_at')
+        fields = (
+            'id', 'title', 'main_image', 'author', 'category', 'tags', 'difficulty', 'views_count',
+            'created_at', 'is_favorited', 'favorites_count'
+        )
+
+    def get_is_favorited(self, obj):
+        """Проверяет, добавлена ли схема в избранное у текущего пользователя."""
+        user = self.context['request'].user
+        if user.is_authenticated:
+            return obj.favorited_by.filter(id=user.id).exists()
+        return False
+
+    def get_favorites_count(self, obj):
+        """Возвращает количество пользователей, добавивших схему в избранное."""
+        return obj.favorited_by.count()
 
 
 class SchemeFileSerializer(serializers.ModelSerializer):
@@ -71,14 +84,26 @@ class EmbroiderySchemeDetailSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     files = SchemeFileSerializer(many=True, read_only=True)
     images = SchemeImageSerializer(many=True, read_only=True)
+    is_favorited = serializers.SerializerMethodField()
+    favorites_count = serializers.SerializerMethodField()
 
     class Meta:
         model = EmbroideryScheme
         fields = (
             'id', 'title', 'author', 'description', 'main_image', 'category',
             'tags', 'license', 'difficulty', 'visibility', 'created_at',
-            'views_count', 'files', 'images'
+            'views_count', 'files', 'images',
+            'is_favorited', 'favorites_count'
         )
+
+    def get_is_favorited(self, obj):
+        user = self.context['request'].user
+        if user.is_authenticated:
+            return obj.favorited_by.filter(id=user.id).exists()
+        return False
+
+    def get_favorites_count(self, obj):
+        return obj.favorited_by.count()
 
 
 # --- СЕРИАЛИЗАТОРЫ ДЛЯ ЗАПИСИ ДАННЫХ ---
@@ -152,3 +177,10 @@ class EmbroiderySchemeUpdateSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
 
+class CommentSerializer(serializers.ModelSerializer):
+    author = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = ('id', 'author', 'text', 'created_at')
+        read_only_fields = ('scheme',)
