@@ -210,8 +210,8 @@ function SchemeList({ schemes: propSchemes, isMySchemesPage = false, nextPageUrl
                         </div>
                         {(nextPageUrl || prevPageUrl) && (
                              <div className="pagination-controls">
-                                <button className="button" disabled={!prevPageUrl} onClick={() => fetchSchemes(new URL(prevPageUrl).pathname + new URL(prevPageUrl).search)}>← Назад</button>
-                                <button className="button" disabled={!nextPageUrl} onClick={() => fetchSchemes(new URL(nextPageUrl).pathname + new URL(nextPageUrl).search)}>Вперед →</button>
+                                <button className="button" disabled={!prevPageUrl} onClick={() => fetchSchemes(prevPageUrl)}>← Назад</button>
+                                <button className="button" disabled={!nextPageUrl} onClick={() => fetchSchemes(nextPageUrl)}>Вперед →</button>
                             </div>
                         )}
                     </>
