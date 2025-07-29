@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from .permissions import IsAuthorOrReadOnly
-from .models import License, Category, Tag, EmbroideryScheme, Comment
+from .models import License, Category, Tag, EmbroideryScheme, Comment, Like
 from .serializers import (
     LicenseSerializer,
     CategorySerializer,
@@ -64,7 +64,11 @@ class EmbroiderySchemeViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = SchemeFilter
 
-    queryset = EmbroideryScheme.objects.all().order_by('-created_at')
+    queryset = EmbroideryScheme.objects.select_related(
+        'author', 'category', 'license'
+    ).prefetch_related(
+        'tags', 'files', 'images', 'favorited_by', 'likes'
+    ).all().order_by('-created_at')
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
 
     def get_serializer_class(self):
@@ -77,6 +81,10 @@ class EmbroiderySchemeViewSet(viewsets.ModelViewSet):
         if self.action == 'my' or self.action == 'favorited':
             return EmbroiderySchemeListSerializer
         return EmbroiderySchemeDetailSerializer
+
+    def get_serializer_context(self):
+        # Передаем request в контекст, чтобы сериализаторы имели к нему доступ
+        return {'request': self.request}
 
     def retrieve(self, request, *args, **kwargs):
         """
@@ -124,6 +132,25 @@ class EmbroiderySchemeViewSet(viewsets.ModelViewSet):
         else:
             scheme.favorited_by.add(user)
             return Response({'status': 'added to favorites'}, status=status.HTTP_200_OK)
+
+    @action(
+        detail=True,
+        methods=['post'],
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def like(self, request, pk=None):
+        """Поставить или убрать лайк."""
+        scheme = self.get_object()
+        user = request.user
+        like, created = Like.objects.get_or_create(user=user, scheme=scheme)
+
+        if not created:
+            # Лайк уже существовал, значит, пользователь его снимает
+            like.delete()
+            return Response({'status': 'unliked'}, status=status.HTTP_200_OK)
+        else:
+            # Лайк только что создан
+            return Response({'status': 'liked'}, status=status.HTTP_201_CREATED)
 
     def get_queryset(self):
         # На `list` мы по-прежнему хотим видеть только публичные схемы

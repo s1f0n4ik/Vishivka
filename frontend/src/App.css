@@ -977,3 +977,104 @@ textarea:focus {
   display: block;
   text-align: right;
 }
+
+
+/* frontend/src/App.css */
+/* Добавьте эти стили в конец вашего файла */
+
+/* Стили для статистики в карточке */
+.scheme-card-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 колонки */
+  gap: 10px;
+  text-align: center;
+}
+
+/* Список выбранных файлов в форме */
+.file-preview-list {
+  list-style-type: none;
+  padding: 10px;
+  margin-top: 10px;
+  background-color: var(--bg-dark);
+  border-radius: var(--border-radius-main);
+  font-size: 0.9em;
+  color: var(--text-secondary);
+}
+.file-preview-list li {
+  padding: 4px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* Блок с кнопками лайка/избранного на детальной странице */
+.actions-block {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    margin: 20px 0;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.action-button-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.action-button-group span {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: var(--text-primary);
+}
+
+.button-like, .button-favorite {
+    padding: 8px 15px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    background-color: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.button-like:hover, .button-favorite:hover {
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+}
+
+/* Активное состояние кнопки лайка */
+.button-like.active {
+    background-color: #e53935; /* Красный цвет */
+    border-color: #e53935;
+    color: white;
+}
+.button-like.active:hover {
+    background-color: #c62828;
+    border-color: #c62828;
+}
+
+/* Стили для галереи */
+.gallery-section {
+    margin-top: 30px;
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+}
+
+.gallery-grid img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: var(--border-radius-main);
+    transition: transform 0.2s ease;
+}
+
+.gallery-grid a:hover img {
+    transform: scale(1.05);
+}

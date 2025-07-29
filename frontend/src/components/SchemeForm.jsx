@@ -27,6 +27,8 @@ function SchemeForm() {
     const [schemeFile, setSchemeFile] = useState(null);
     const [error, setError] = useState('');
 
+    const [galleryImages, setGalleryImages] = useState([]);
+
     // --- ИЗМЕНЕНИЕ 1: Разделим состояния загрузки ---
     const [isSubmitting, setIsSubmitting] = useState(false); // Для отправки формы
     const [isFetching, setIsFetching] = useState(true);      // Для начальной загрузки данных
@@ -88,6 +90,13 @@ function SchemeForm() {
         if (previewImage) formData.append('main_image', previewImage);
         if (schemeFile) formData.append('file_scheme', schemeFile);
 
+        if (galleryImages.length > 0) {
+            galleryImages.forEach(file => {
+                // Ключ 'gallery_images' должен совпадать с ключом в сериализаторе
+                formData.append('gallery_images', file);
+            });
+        }
+
         try {
             const response = await apiClient.post('/schemes/', formData);
             navigate(`/schemes/${response.data.id}`);
@@ -104,6 +113,11 @@ function SchemeForm() {
     if (isFetching) {
         return <div className="form-container"><h2>Загрузка данных...</h2></div>;
     }
+
+    const handleGalleryImageChange = (e) => {
+        // e.target.files это FileList, преобразуем его в массив
+        setGalleryImages(Array.from(e.target.files));
+    };
 
     const licenseOptions = allLicenses.map(l => ({
         value: l.id,
@@ -178,6 +192,35 @@ function SchemeForm() {
                                onChange={e => setPreviewImage(e.target.files[0])} required />
                     </div>
                 </div>
+
+                <div className="form-group">
+                    <label htmlFor="galleryImages">Дополнительные изображения (галерея)</label>
+                    <div className="custom-file-input">
+                        <label htmlFor="galleryImages" className="file-input-label">
+                            Выберите файлы
+                        </label>
+                        <span className="file-input-name">
+                            {galleryImages.length > 0
+                                ? `Выбрано файлов: ${galleryImages.length}`
+                                : 'Файлы не выбраны'}
+                        </span>
+                        <input
+                            id="galleryImages"
+                            type="file"
+                            accept="image/*"
+                            multiple // <--- Важный атрибут!
+                            onChange={handleGalleryImageChange}
+                        />
+                    </div>
+                    {galleryImages.length > 0 && (
+                        <ul className="file-preview-list">
+                            {galleryImages.map((file, index) => (
+                                <li key={index}>{file.name}</li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+
                 <div className="form-group">
                     <label htmlFor="schemeFile">Файл схемы (.pdf, .zip и т.д.)</label>
                      <div className="custom-file-input">

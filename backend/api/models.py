@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
+from django.db.models import Sum
 
 
 class License(models.Model):
@@ -141,6 +142,14 @@ class EmbroideryScheme(models.Model):
 
     # slug = models.SlugField(_('slug'), max_length=250, unique=True, blank=True) # Если нужен уникальный слаг для схемы
 
+    @property
+    def total_downloads_count(self):
+        """Возвращает сумму скачиваний всех файлов, связанных с этой схемой."""
+        # Мы используем aggregate для эффективного подсчета на уровне БД.
+        # Если файлов нет, вернется None, поэтому мы обрабатываем этот случай.
+        result = self.files.aggregate(total=Sum('downloads_count'))
+        return result['total'] or 0
+
     def __str__(self):
         return self.title
 
@@ -153,6 +162,33 @@ class EmbroideryScheme(models.Model):
         verbose_name = _('embroidery scheme')
         verbose_name_plural = _('embroidery schemes')
         ordering = ['-created_at']  # По умолчанию сортируем по дате создания (новые сверху)
+
+
+class Like(models.Model):
+    """Модель для хранения лайков от пользователей к схемам."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='likes',
+        verbose_name=_('user')
+    )
+    scheme = models.ForeignKey(
+        EmbroideryScheme,
+        on_delete=models.CASCADE,
+        related_name='likes',
+        verbose_name=_('scheme')
+    )
+    created_at = models.DateTimeField(_('created at'), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('like')
+        verbose_name_plural = _('likes')
+        # Гарантирует, что один пользователь может поставить только один лайк одной схеме
+        unique_together = ('user', 'scheme')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Like by {self.user} on {self.scheme}"
 
 
 class SchemeFile(models.Model):

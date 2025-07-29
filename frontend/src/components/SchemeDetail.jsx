@@ -87,6 +87,28 @@ function SchemeDetail() {
     }
   };
 
+  const handleLikeToggle = async () => {
+    if (!user) {
+      alert("Пожалуйста, войдите в систему, чтобы оценивать схемы.");
+      navigate('/login');
+      return;
+    }
+    try {
+      await apiClient.post(`/schemes/${id}/like/`);
+      // Оптимистичное обновление
+      setScheme(prevScheme => ({
+        ...prevScheme,
+        is_liked: !prevScheme.is_liked,
+        likes_count: prevScheme.is_liked
+          ? prevScheme.likes_count - 1
+          : prevScheme.likes_count + 1
+      }));
+    } catch (err) {
+      console.error("Ошибка при оценке схемы:", err);
+      alert("Не удалось выполнить действие. Попробуйте снова.");
+    }
+  };
+
   if (loading) return <p>Загрузка схемы...</p>;
   if (error) return <p>{error}</p>;
   if (!scheme) return <p>Схема не найдена.</p>;
@@ -111,11 +133,19 @@ function SchemeDetail() {
 
       {/* Кнопка избранного */}
       {user && (
-          <div className="favorite-controls">
-            <button onClick={handleFavoriteToggle} className="button">
-              {scheme.is_favorited ? '⭐ Убрать из избранного' : '☆ Добавить в избранное'}
-            </button>
-            <span>В избранном у {scheme.favorites_count} чел.</span>
+          <div className="actions-block">
+            <div className="action-button-group">
+                <button onClick={handleLikeToggle} className={`button-like ${scheme.is_liked ? 'active' : ''}`}>
+                    ❤️ {scheme.is_liked ? 'Нравится' : 'Оценить'}
+                </button>
+                <span>{scheme.likes_count}</span>
+            </div>
+            <div className="action-button-group">
+                <button onClick={handleFavoriteToggle} className="button-favorite">
+                  {scheme.is_favorited ? '⭐ В избранном' : '☆ В избранное'}
+                </button>
+                <span>{scheme.favorites_count}</span>
+            </div>
           </div>
       )}
 
@@ -124,6 +154,19 @@ function SchemeDetail() {
           <div className="scheme-main-content">
               {scheme.main_image && (
                   <img src={scheme.main_image} alt={`Превью для ${scheme.title}`} className="scheme-detail-image" />
+              )}
+
+              {scheme.images && scheme.images.length > 0 && (
+                <div className="scheme-section gallery-section">
+                    <h3>Галерея</h3>
+                    <div className="gallery-grid">
+                        {scheme.images.map(img => (
+                            <a href={img.image} key={img.id} target="_blank" rel="noopener noreferrer">
+                                <img src={img.image} alt={img.caption || 'Дополнительное изображение'} />
+                            </a>
+                        ))}
+                    </div>
+                </div>
               )}
 
               {/* Описание схемы */}

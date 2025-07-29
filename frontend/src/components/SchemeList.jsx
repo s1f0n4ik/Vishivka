@@ -102,7 +102,7 @@ function FilterPanel({ onFilterChange, onResetFilters, categories, licenses, all
 }
 
 
-function SchemeList({ schemes: propSchemes, isMySchemesPage = false }) {
+function SchemeList({ schemes: propSchemes, isMySchemesPage = false, nextPageUrl: propNext, prevPageUrl: propPrev, onPageChange: propOnPageChange }) {
     const [schemes, setSchemes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -199,9 +199,9 @@ function SchemeList({ schemes: propSchemes, isMySchemesPage = false }) {
                                             )}
                                             <div className="scheme-card-stats">
                                                 <span>👁️ {scheme.views_count}</span>
-                                                <span>
-                                                {scheme.is_favorited ? '⭐' : '☆'} {scheme.favorites_count}
-                                            </span>
+                                                <span>❤️ {scheme.likes_count}</span>
+                                                <span>📥 {scheme.total_downloads_count}</span>
+                                                <span>⭐ {scheme.favorites_count}</span>
                                             </div>
                                         </div>
                                     </div>

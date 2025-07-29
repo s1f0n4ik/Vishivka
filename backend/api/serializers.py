@@ -1,7 +1,7 @@
 # backend/api/serializers.py
 from users.serializers import UserSerializer
 from rest_framework import serializers
-from .models import License, Category, Tag, EmbroideryScheme, SchemeFile, SchemeImage, Comment
+from .models import License, Category, Tag, EmbroideryScheme, SchemeFile, SchemeImage, Comment, Like
 from django.utils.text import slugify
 
 
@@ -49,12 +49,14 @@ class EmbroiderySchemeListSerializer(serializers.ModelSerializer):
     tags = serializers.StringRelatedField(many=True)
     is_favorited = serializers.SerializerMethodField()
     favorites_count = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
+    likes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = EmbroideryScheme
         fields = (
             'id', 'title', 'main_image', 'author', 'category', 'tags', 'difficulty', 'views_count',
-            'created_at', 'is_favorited', 'favorites_count'
+            'created_at', 'is_favorited', 'favorites_count', 'is_liked', 'likes_count'
         )
 
     def get_is_favorited(self, obj):
@@ -67,6 +69,13 @@ class EmbroiderySchemeListSerializer(serializers.ModelSerializer):
     def get_favorites_count(self, obj):
         """Возвращает количество пользователей, добавивших схему в избранное."""
         return obj.favorited_by.count()
+
+    def get_is_liked(self, obj):
+        user = self.context['request'].user
+        return user.is_authenticated and Like.objects.filter(scheme=obj, user=user).exists()
+
+    def get_likes_count(self, obj):
+        return obj.likes.count()
 
 
 class SchemeFileSerializer(serializers.ModelSerializer):
@@ -90,11 +99,8 @@ class EmbroiderySchemeDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EmbroideryScheme
-        fields = (
-            'id', 'title', 'author', 'description', 'main_image', 'category',
-            'tags', 'license', 'difficulty', 'visibility', 'created_at',
-            'views_count', 'files', 'images',
-            'is_favorited', 'favorites_count'
+        fields = EmbroiderySchemeListSerializer.Meta.fields + (
+            'description', 'license', 'visibility', 'files', 'images'
         )
 
     def get_is_favorited(self, obj):
@@ -123,18 +129,23 @@ class EmbroiderySchemeCreateSerializer(serializers.ModelSerializer):
     main_image = serializers.ImageField(write_only=True, required=True)
     file_scheme = serializers.FileField(write_only=True, required=True, label="Файл схемы")
 
+    gallery_images = serializers.ListField(
+        child=serializers.ImageField(), write_only=True, required=False
+    )
+
     class Meta:
         model = EmbroideryScheme
         fields = (
             'id', 'title', 'description', 'main_image',
             'category', 'tags_str', 'difficulty', 'visibility',
-            'file_scheme', 'license'
+            'file_scheme', 'license', 'gallery_images'
         )
 
     def create(self, validated_data):
         tags_string = validated_data.pop('tags_str', '')
         scheme_file_data = validated_data.pop('file_scheme', None)
         scheme = EmbroideryScheme.objects.create(**validated_data)
+        gallery_images_data = validated_data.pop('gallery_images', [])
 
         if tags_string:
             tag_names = [name.strip() for name in tags_string.split(',') if name.strip()]
@@ -151,55 +162,41 @@ class EmbroiderySchemeCreateSerializer(serializers.ModelSerializer):
         if scheme_file_data:
             SchemeFile.objects.create(scheme=scheme, file=scheme_file_data)
 
+        if gallery_images_data:
+            for image_data in gallery_images_data:
+                SchemeImage.objects.create(scheme=scheme, image=image_data)
+
         return scheme
 
 
 # Сериализатор для ОБНОВЛЕНИЯ схемы
-class EmbroiderySchemeUpdateSerializer(serializers.ModelSerializer):
-    category = serializers.PrimaryKeyRelatedField(
-        queryset=Category.objects.all(), required=False, allow_null=True
-    )
-
-    license = serializers.PrimaryKeyRelatedField(
-        queryset=License.objects.all(),
-        required=False,  # Делаем необязательным, чтобы не требовать при каждом PUT
-        label="Лицензия"
-    )
-
-    tags_str = serializers.CharField(write_only=True, required=False, allow_blank=True, label="Теги (через запятую)")
+class EmbroiderySchemeUpdateSerializer(EmbroiderySchemeCreateSerializer):
     main_image = serializers.ImageField(write_only=True, required=False)
-    file_scheme = serializers.FileField(write_only=True, required=False, label="Файл схемы")
-
-    class Meta:
-        model = EmbroideryScheme
-        fields = (
-            'id', 'title', 'description', 'main_image',
-            'category', 'tags_str', 'difficulty', 'visibility',
-            'file_scheme', 'license'
-        )
+    file_scheme = serializers.FileField(write_only=True, required=False, label="Загрузить новый файл схемы")
 
     def update(self, instance, validated_data):
         tags_string = validated_data.pop('tags_str', None)
         scheme_file_data = validated_data.pop('file_scheme', None)
+        gallery_images_data = validated_data.pop('gallery_images', None)
+
+        instance = super(serializers.ModelSerializer, self).update(instance, validated_data)
 
         if tags_string is not None:
             instance.tags.clear()
             tag_names = [name.strip() for name in tags_string.split(',') if name.strip()]
             for name in tag_names:
-                slug = slugify(name)
-                tag, _ = Tag.objects.get_or_create(
-                    slug=slug,
-                    defaults={'name': name}
-                )
-                instance.tags.add(tag)
+                slug = slugify(name); tag, _ = Tag.objects.get_or_create(slug=slug, defaults={'name': name}); instance.tags.add(tag)
 
         if scheme_file_data:
             SchemeFile.objects.create(scheme=instance, file=scheme_file_data, description="Обновленный файл")
 
-        if 'license' in validated_data:
-            instance.license = validated_data.pop('license')
+        if gallery_images_data is not None:
+            # Здесь можно добавить логику удаления старых картинок, если нужно
+            # instance.images.all().delete()
+            for image_data in gallery_images_data:
+                SchemeImage.objects.create(scheme=instance, image=image_data, caption="Дополнительное изображение")
 
-        return super().update(instance, validated_data)
+        return instance
 
 
 class CommentSerializer(serializers.ModelSerializer):
