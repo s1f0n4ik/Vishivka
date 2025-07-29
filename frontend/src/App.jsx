@@ -44,7 +44,7 @@ function Layout({ children }) {
                         {user ? (
                             <>
                                 {/* Основные действия для залогиненного пользователя */}
-                                <Link to="/favorites" className="nav-link">❤️Избранное❤️</Link>
+                                <Link to="/favorites" className="nav-link">⭐Избранное⭐</Link>
                                 <Link to="/add-scheme" className="nav-button">Добавить схему</Link>
 
                                 {/* Наш новый компонент меню */}

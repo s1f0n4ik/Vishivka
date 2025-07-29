@@ -427,3 +427,553 @@ textarea:focus {
     background-color: var(--accent-green-hover);
     text-decoration: none;
 }
+
+
+/* --- Стили для страницы создания/редактирования схемы --- */
+.form-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 40px;
+    background-color: var(--bg-medium);
+    border-radius: var(--border-radius-main);
+}
+
+.form-container h2 {
+    margin-top: 0;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* Сетка для полей, которые должны быть в одну строку */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-error {
+    background-color: #5c1a1a;
+    color: #ffcccc;
+    border: 1px solid #e53e3e;
+    padding: 15px;
+    border-radius: var(--border-radius-main);
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.form-button {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.1rem;
+    margin-top: 10px;
+}
+
+/* --- Стилизация библиотеки react-select под нашу темную тему --- */
+.react-select-container .react-select__control {
+    background-color: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-main);
+    padding: 5px;
+    min-height: 50px;
+    box-shadow: none;
+}
+.react-select-container .react-select__control--is-focused {
+    border-color: var(--accent-green);
+    box-shadow: 0 0 0 1px var(--accent-green);
+}
+.react-select-container .react-select__input-container,
+.react-select-container .react-select__single-value {
+    color: var(--text-primary);
+}
+.react-select-container .react-select__placeholder {
+    color: var(--text-secondary);
+}
+.react-select-container .react-select__menu {
+    background-color: var(--bg-medium);
+    border: 1px solid var(--border-color);
+}
+.react-select-container .react-select__option {
+    background-color: var(--bg-medium);
+    color: var(--text-primary);
+}
+.react-select-container .react-select__option--is-focused {
+    background-color: var(--bg-light);
+}
+.react-select-container .react-select__option--is-selected {
+    background-color: var(--accent-green);
+    color: white;
+}
+.react-select-container .react-select__multi-value {
+    background-color: var(--bg-light);
+}
+.react-select-container .react-select__multi-value__label {
+    color: var(--text-primary);
+}
+.react-select-container .react-select__multi-value__remove {
+    color: var(--text-secondary);
+}
+.react-select-container .react-select__multi-value__remove:hover {
+    background-color: var(--accent-green);
+    color: white;
+}
+
+
+/* --- Улучшенные стили для панели фильтров --- */
+
+.filter-panel {
+    display: flex; /* Включаем Flexbox */
+    gap: 15px; /* Расстояние между группой полей и кнопкой */
+    align-items: flex-end; /* Выравниваем по низу */
+}
+
+.filter-inputs {
+    display: flex; /* Внутренний Flexbox для полей */
+    gap: 15px;
+    flex-grow: 1; /* Группа полей займет все доступное пространство */
+}
+
+.filter-search {
+    flex-basis: 50%; /* Поле поиска будет занимать половину места в группе */
+}
+
+
+/* --- Стили для карточки в списке (SchemeList.jsx) --- */
+.scheme-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px; /* Отступ от имени автора */
+}
+
+.scheme-tag-badge {
+    background-color: var(--background-secondary); /* Используем переменные, если есть */
+    color: var(--text-secondary);
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* --- Стили для детальной страницы (SchemeDetail.jsx) --- */
+.scheme-detail-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.author-controls {
+    float: right;
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.favorite-controls {
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.scheme-content-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr; /* Основной контент шире, сайдбар уже */
+    gap: 30px;
+    margin-top: 20px;
+}
+
+/* Стили для мобильных устройств */
+@media (max-width: 768px) {
+    .scheme-content-grid {
+        grid-template-columns: 1fr; /* Все в одну колонку */
+    }
+}
+
+.scheme-main-content .scheme-detail-image {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.scheme-section {
+    background-color: var(--background-secondary);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.scheme-section strong {
+    display: block;
+    margin-bottom: 10px;
+    color: var(--text-primary);
+}
+
+.scheme-description {
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
+.scheme-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.license-info a {
+    font-weight: bold;
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.license-info a:hover {
+    text-decoration: underline;
+}
+
+.license-description {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    line-height: 1.5;
+}
+
+.author-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.author-info a {
+    font-weight: bold;
+}
+
+
+.button {
+    display: inline-block;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #fff;
+    cursor: pointer;
+    text-decoration: none; /* для Link */
+    text-align: center;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.button:active {
+    transform: scale(0.98);
+}
+
+/* Стили для панели управления автора */
+.author-controls {
+    float: right;
+    display: flex;
+    gap: 12px;
+    margin-left: 20px; /* Чтобы текст не прилипал */
+    margin-bottom: 10px;
+}
+
+.button-edit {
+    background-color: var(--primary-color, #28a745); /* Зеленая кнопка */
+}
+.button-edit:hover {
+    background-color: #218838;
+    color: inherit;
+    text-decoration: none;
+}
+
+.button-delete {
+    background-color: #dc3545; /* Красная кнопка */
+}
+.button-delete:hover {
+    background-color: #c82333;
+}
+
+
+/* Стили для новой страницы со списком схем */
+.schemes-page-container {
+    display: grid;
+    grid-template-columns: 280px 1fr; /* Сайдбар и основной контент */
+    gap: 30px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.schemes-sidebar {
+    background-color: var(--background-secondary);
+    padding: 20px;
+    border-radius: 12px;
+    align-self: start; /* Сайдбар не растягивается по высоте */
+}
+
+.filter-panel .filter-group {
+    margin-bottom: 20px;
+}
+
+.filter-panel label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.filter-panel .filter-search {
+    width: 100%;
+    /* Стили из вашей формы */
+    background-color: var(--background-primary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 12px;
+    border-radius: 8px;
+}
+
+.filter-panel .button {
+    width: 100%;
+    margin-top: 10px;
+    background-color: var(--primary-color);
+}
+
+.page-header {
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.page-header h1 {
+    font-size: 2rem;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 992px) {
+    .schemes-page-container {
+        grid-template-columns: 1fr; /* Все в одну колонку */
+    }
+    .schemes-sidebar {
+        margin-bottom: 30px;
+    }
+}
+
+
+/* Стили для кастомной кнопки загрузки файла */
+.custom-file-input {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--background-primary);
+    padding-left: 12px;
+}
+
+/* Прячем настоящий input */
+.custom-file-input input[type="file"] {
+    display: none;
+}
+
+/* Стилизуем label, чтобы он выглядел как кнопка */
+.custom-file-input .file-input-label {
+    display: inline-block;
+    background-color: #495057; /* Темно-серый */
+    color: #fff;
+    padding: 12px 15px;
+    margin-right: 12px;
+    border-radius: 8px 0 0 8px; /* Скругление только слева */
+    margin-left: -12px; /* Убираем отступ, который создали в родителе */
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.2s;
+}
+
+.custom-file-input .file-input-label:hover {
+    background-color: #5a6268;
+}
+
+/* Стили для текста с названием файла */
+.custom-file-input .file-input-name {
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+
+/* frontend/src/App.css */
+
+/* --- ЗАМЕНИТЬ ЭТИ СТИЛИ --- */
+
+/* Стили для новой страницы со списком схем */
+.schemes-page-container {
+    display: grid;
+    /* Определяем колонки: сайдбар фиксированный, основной контент занимает остальное место */
+    grid-template-columns: 280px 1fr;
+    /* Определяем области для элементов */
+    grid-template-areas:
+        "header header"
+        "sidebar main";
+    gap: 30px;
+    max-width: 1600px; /* 1. Растягиваем контейнер на всю ширину */
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* 3. Выравниваем элементы по сетке */
+.page-header {
+    grid-area: header; /* Заголовок занимает область 'header' */
+    margin-bottom: 0; /* Убираем лишний отступ, так как есть gap */
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.schemes-sidebar {
+    grid-area: sidebar; /* Сайдбар занимает область 'sidebar' */
+    background-color: var(--bg-medium);
+    padding: 20px;
+    border-radius: 12px;
+    align-self: start; /* Сайдбар не растягивается по высоте */
+}
+
+.schemes-main-content {
+    grid-area: main; /* Основной контент занимает область 'main' */
+}
+
+.filter-panel {
+    /* Теперь это просто контейнер для групп, без flex */
+    background: none;
+    padding: 0;
+    margin: 0;
+}
+
+.filter-panel .filter-group {
+    margin-bottom: 20px;
+}
+
+.filter-panel label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.filter-panel .filter-search {
+    width: 100%;
+    background-color: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 12px;
+    border-radius: var(--border-radius-main);
+}
+
+.filter-panel .button {
+    width: 100%;
+    margin-top: 10px;
+    background-color: var(--accent-green);
+}
+
+.page-header h1 {
+    font-size: 2.2rem;
+    margin: 0;
+    text-align: center;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 992px) {
+    .schemes-page-container {
+        grid-template-columns: 1fr; /* Все в одну колонку */
+        grid-template-areas:
+            "header"
+            "sidebar"
+            "main";
+    }
+}
+
+/* --- КОНЕЦ ЗАМЕНЫ --- */
+
+
+.filter-buttons {
+    display: flex;
+    gap: 10px; /* Расстояние между кнопками */
+    margin-top: 15px;
+}
+
+/* Стили для вторичной/сброса кнопки */
+.button.button-secondary {
+    background-color: #6c757d; /* Серый фон */
+    border-color: #6c757d;
+}
+
+.button.button-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+}
+
+/* Стили для кнопки-ссылки в тексте "ничего не найдено" */
+.link-button {
+    background: none;
+    border: none;
+    color: var(--primary-color, #007bff); /* Цвет ссылки */
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+    font-size: inherit; /* Наследуем размер шрифта от <p> */
+}
+
+
+.file-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.file-item .file-link {
+  display: block;
+  background-color: var(--bg-dark);
+  padding: 12px 15px;
+  border-radius: var(--border-radius-main);
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: background-color 0.2s ease;
+  border: 1px solid var(--border-color);
+}
+
+.file-item .file-link:hover {
+  background-color: var(--bg-light);
+  color: #fff;
+  text-decoration: none;
+}
+
+.file-link .file-type {
+  font-weight: bold;
+  color: var(--accent-green);
+  display: block;
+  margin-bottom: 5px;
+}
+
+.file-link .file-description {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.file-link .file-downloads {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  display: block;
+  text-align: right;
+}

@@ -3,10 +3,13 @@ import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import dayjs from 'dayjs';
 
-const baseURL = 'http://127.0.0.1:8000/api/v1';
+// --- НАЧАЛО ИЗМЕНЕНИЙ ---
+// Экспортируем константу, чтобы ее можно было использовать в других частях приложения
+export const API_BASE_URL = 'http://127.0.0.1:8000/api/v1';
+// --- КОНЕЦ ИЗМЕНЕНИЙ ---
 
 const apiClient = axios.create({
-    baseURL,
+    baseURL: API_BASE_URL, // Используем нашу константу
 });
 
 // "Перехватчик" (interceptor)
@@ -23,28 +26,24 @@ apiClient.interceptors.request.use(async req => {
     const isExpired = dayjs.unix(user.exp).diff(dayjs()) < 1;
 
     if (!isExpired) {
-        // ----- ГЛАВНОЕ И ОКОНЧАТЕЛЬНОЕ ИСПРАВЛЕНИЕ -----
-        // Используем префикс 'Bearer', а не 'JWT'.
         req.headers.Authorization = `Bearer ${authTokens.access}`;
-        // --------------------------------------------------
         return req;
     }
 
     try {
-        const response = await axios.post(`${baseURL}/auth/jwt/refresh/`, {
+        const response = await axios.post(`${API_BASE_URL}/auth/jwt/refresh/`, {
             refresh: authTokens.refresh
         });
 
         localStorage.setItem('authTokens', JSON.stringify(response.data));
-
-        // ----- И здесь тоже исправляем на 'Bearer' -----
         req.headers.Authorization = `Bearer ${response.data.access}`;
-        // ---------------------------------------------
         return req;
 
     } catch (refreshError) {
         console.error("Не удалось обновить токен! Выходим из системы.", refreshError);
         localStorage.removeItem('authTokens');
+        // Вместо window.location.href, чтобы не перезагружать страницу полностью,
+        // лучше сделать редирект через роутер, но для простоты пока оставим так.
         window.location.href = '/login';
         return Promise.reject(refreshError);
     }

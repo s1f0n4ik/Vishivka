@@ -2,6 +2,7 @@
 from users.serializers import UserSerializer
 from rest_framework import serializers
 from .models import License, Category, Tag, EmbroideryScheme, SchemeFile, SchemeImage, Comment
+from django.utils.text import slugify
 
 
 class LicenseSerializer(serializers.ModelSerializer):
@@ -112,6 +113,12 @@ class EmbroiderySchemeCreateSerializer(serializers.ModelSerializer):
     category = serializers.PrimaryKeyRelatedField(
         queryset=Category.objects.all(), required=False, allow_null=True
     )
+
+    license = serializers.PrimaryKeyRelatedField(
+        queryset=License.objects.all(),
+        label="Лицензия"
+    )
+
     tags_str = serializers.CharField(write_only=True, required=False, allow_blank=True, label="Теги (через запятую)")
     main_image = serializers.ImageField(write_only=True, required=True)
     file_scheme = serializers.FileField(write_only=True, required=True, label="Файл схемы")
@@ -121,7 +128,7 @@ class EmbroiderySchemeCreateSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'title', 'description', 'main_image',
             'category', 'tags_str', 'difficulty', 'visibility',
-            'file_scheme'
+            'file_scheme', 'license'
         )
 
     def create(self, validated_data):
@@ -133,7 +140,11 @@ class EmbroiderySchemeCreateSerializer(serializers.ModelSerializer):
             tag_names = [name.strip() for name in tags_string.split(',') if name.strip()]
             tags_to_add = []
             for name in tag_names:
-                tag, _ = Tag.objects.get_or_create(name=name)
+                slug = slugify(name)
+                tag, _ = Tag.objects.get_or_create(
+                    slug=slug,
+                    defaults={'name': name}
+                )
                 tags_to_add.append(tag)
             scheme.tags.set(tags_to_add)
 
@@ -148,6 +159,13 @@ class EmbroiderySchemeUpdateSerializer(serializers.ModelSerializer):
     category = serializers.PrimaryKeyRelatedField(
         queryset=Category.objects.all(), required=False, allow_null=True
     )
+
+    license = serializers.PrimaryKeyRelatedField(
+        queryset=License.objects.all(),
+        required=False,  # Делаем необязательным, чтобы не требовать при каждом PUT
+        label="Лицензия"
+    )
+
     tags_str = serializers.CharField(write_only=True, required=False, allow_blank=True, label="Теги (через запятую)")
     main_image = serializers.ImageField(write_only=True, required=False)
     file_scheme = serializers.FileField(write_only=True, required=False, label="Файл схемы")
@@ -157,7 +175,7 @@ class EmbroiderySchemeUpdateSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'title', 'description', 'main_image',
             'category', 'tags_str', 'difficulty', 'visibility',
-            'file_scheme'
+            'file_scheme', 'license'
         )
 
     def update(self, instance, validated_data):
@@ -168,11 +186,18 @@ class EmbroiderySchemeUpdateSerializer(serializers.ModelSerializer):
             instance.tags.clear()
             tag_names = [name.strip() for name in tags_string.split(',') if name.strip()]
             for name in tag_names:
-                tag, _ = Tag.objects.get_or_create(name=name)
+                slug = slugify(name)
+                tag, _ = Tag.objects.get_or_create(
+                    slug=slug,
+                    defaults={'name': name}
+                )
                 instance.tags.add(tag)
 
         if scheme_file_data:
             SchemeFile.objects.create(scheme=instance, file=scheme_file_data, description="Обновленный файл")
+
+        if 'license' in validated_data:
+            instance.license = validated_data.pop('license')
 
         return super().update(instance, validated_data)
 

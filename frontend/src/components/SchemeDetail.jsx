@@ -1,71 +1,72 @@
 // frontend/src/components/SchemeDetail.jsx
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import apiClient from '../api/apiClient';
+import apiClient, { API_BASE_URL } from '../api/apiClient'; // Теперь импорт работает корректно
 import AuthContext from '../context/AuthContext';
 
 function SchemeDetail() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const { user } = useContext(AuthContext);
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const { user } = useContext(AuthContext);
 
-  const [scheme, setScheme] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+    const [scheme, setScheme] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [comments, setComments] = useState([]);
+    const [newComment, setNewComment] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [comments, setComments] = useState([]);
-  const [newComment, setNewComment] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+    useEffect(() => {
+        const fetchSchemeAndComments = async () => {
+            try {
+                setLoading(true);
+                const schemeResponse = await apiClient.get(`/schemes/${id}/`);
+                setScheme(schemeResponse.data);
+                const commentsResponse = await apiClient.get(`/schemes/${id}/comments/`);
+                setComments(commentsResponse.data.results.sort((a, b) => new Date(a.created_at) - new Date(b.created_at)));
+            } catch (err) {
+                setError('Не удалось загрузить данные.');
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchSchemeAndComments();
+    }, [id]);
 
-  useEffect(() => {
-    const fetchSchemeAndComments = async () => {
-      try {
-        setLoading(true);
-        // Запрос данных о схеме
-        const schemeResponse = await apiClient.get(`/schemes/${id}/`); // <-- ИЗМЕНЕНИЕ ЗДЕСЬ
-        setScheme(schemeResponse.data);
-        // Запрос комментариев для этой схемы
-        const commentsResponse = await apiClient.get(`/schemes/${id}/comments/`); // <-- ИЗМЕНЕНИЕ ЗДЕСЬ
-        // Сортируем комментарии, чтобы новые были внизу
-        setComments(commentsResponse.data.results.sort((a, b) => new Date(a.created_at) - new Date(b.created_at)));
-
-      } catch (err) {
-        setError('Не удалось загрузить данные.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+    const handleFavoriteToggle = async () => {
+        if (!user) {
+            alert("Пожалуйста, войдите в систему, чтобы добавлять схемы в избранное.");
+            navigate('/login');
+            return;
+        }
+        try {
+            await apiClient.post(`/schemes/${id}/favorite/`);
+            setScheme(prevScheme => ({
+                ...prevScheme,
+                is_favorited: !prevScheme.is_favorited,
+                favorites_count: prevScheme.is_favorited ? prevScheme.favorites_count - 1 : prevScheme.favorites_count + 1
+            }));
+        } catch (err) {
+            console.error("Ошибка при добавлении в избранное:", err);
+            alert("Не удалось выполнить действие. Попробуйте снова.");
+        }
     };
 
-    fetchSchemeAndComments();
-  }, [id]);
+    // --- НАЧАЛО ИЗМЕНЕНИЙ: Реализуем функцию удаления ---
+    const handleDelete = async () => {
+        if (window.confirm('Вы уверены, что хотите удалить эту схему? Это действие необратимо.')) {
+            try {
+                await apiClient.delete(`/schemes/${id}/`);
+                alert('Схема успешно удалена.');
+                navigate('/'); // Перенаправляем на главную страницу
+            } catch (err) {
+                console.error("Ошибка при удалении схемы:", err);
+                alert('Не удалось удалить схему.');
+            }
+        }
+    };
 
-  const handleFavoriteToggle = async () => {
-    // ... (код этой функции уже использует apiClient и остается без изменений)
-    if (!user) {
-      alert("Пожалуйста, войдите в систему, чтобы добавлять схемы в избранное.");
-      navigate('/login');
-      return;
-    }
-
-    try {
-      await apiClient.post(`/schemes/${id}/favorite/`);
-      setScheme(prevScheme => ({
-        ...prevScheme,
-        is_favorited: !prevScheme.is_favorited,
-        favorites_count: prevScheme.is_favorited
-          ? prevScheme.favorites_count - 1
-          : prevScheme.favorites_count + 1
-      }));
-    } catch (err) {
-      console.error("Ошибка при добавлении в избранное:", err);
-      alert("Не удалось выполнить действие. Попробуйте снова.");
-    }
-  };
-
-  const handleDelete = async () => {
-    // ... (код этой функции уже использует apiClient и остается без изменений)
-  };
 
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
@@ -73,10 +74,9 @@ function SchemeDetail() {
 
     setIsSubmitting(true);
     try {
-      const response = await apiClient.post(`/schemes/${id}/comments/`, { // <-- ИЗМЕНЕНИЕ ЗДЕСЬ
+      const response = await apiClient.post(`/schemes/${id}/comments/`, {
         text: newComment,
       });
-      // Добавляем новый коммент в конец списка
       setComments([...comments, response.data]);
       setNewComment('');
     } catch (error) {
@@ -91,42 +91,108 @@ function SchemeDetail() {
   if (error) return <p>{error}</p>;
   if (!scheme) return <p>Схема не найдена.</p>;
 
-  // <-- ИСПРАВЛЕНИЕ ПРОВЕРКИ АВТОРСТВА -->
   const isAuthor = user && scheme.author && user.id === scheme.author.id;
 
   return (
-    <div>
-        {/* ... (весь ваш JSX остается здесь без изменений) ... */}
-
+    <div className="scheme-detail-container"> {/* Добавляем общий контейнер для стилей */}
       {/* Панель управления для автора */}
       {isAuthor && (
-        <div style={{ float: 'right', border: '1px solid gray', padding: '10px', marginBottom: '10px' }}>
-          <Link to={`/schemes/${id}/edit`}>
-            <button>Редактировать</button>
+        <div className="author-controls">
+          <Link to={`/schemes/${id}/edit`} className="button button-edit">
+            Редактировать
           </Link>
-          <button onClick={handleDelete} style={{ marginLeft: '10px', backgroundColor: '#f44336', color: 'white' }}>
+          <button onClick={handleDelete} className="button button-delete">
             Удалить
           </button>
         </div>
       )}
+
       <h2>{scheme.title}</h2>
 
       {/* Кнопка избранного */}
       {user && (
-          <div style={{ margin: '15px 0' }}>
-            <button onClick={handleFavoriteToggle}>
-              {scheme.is_favorited ? '❤️ Убрать из избранного' : '🤍 Добавить в избранное'}
+          <div className="favorite-controls">
+            <button onClick={handleFavoriteToggle} className="button">
+              {scheme.is_favorited ? '⭐ Убрать из избранного' : '☆ Добавить в избранное'}
             </button>
-            <span style={{ marginLeft: '10px' }}>
-              В избранном у {scheme.favorites_count} чел.
-            </span>
+            <span>В избранном у {scheme.favorites_count} чел.</span>
           </div>
       )}
 
-      {/* Детали схемы */}
-      {scheme.main_image && <img src={scheme.main_image} alt={`Превью для ${scheme.title}`} style={{ maxWidth: '400px', height: 'auto' }} />}
-      <p><strong>Автор:</strong> {scheme.author ? <Link to={`/profile/${scheme.author.username}`}>{scheme.author.username}</Link> : 'Не указан'}</p>
-      {/* ... и так далее ... */}
+      {/* --- НАЧАЛО ИЗМЕНЕНИЙ --- */}
+      <div className="scheme-content-grid">
+          <div className="scheme-main-content">
+              {scheme.main_image && (
+                  <img src={scheme.main_image} alt={`Превью для ${scheme.title}`} className="scheme-detail-image" />
+              )}
+
+              {/* Описание схемы */}
+              {scheme.description && (
+                  <div className="scheme-section">
+                      <h3>Описание</h3>
+                      <p className="scheme-description">{scheme.description}</p>
+                  </div>
+              )}
+          </div>
+          <div className="scheme-sidebar">
+              {/* Информация об авторе */}
+              <div className="scheme-section author-info">
+                  <strong>Автор:</strong>
+                  <span>
+                    {scheme.author ? <Link to={`/profile/${scheme.author.username}`}>{scheme.author.username}</Link> : 'Не указан'}
+                  </span>
+              </div>
+
+              {scheme.files && scheme.files.length > 0 && (
+                <div className="scheme-section">
+                    <h3>Файлы для скачивания</h3>
+                    <ul className="file-list">
+                        {scheme.files.map(file => (
+                            <li key={file.id} className="file-item">
+                                <a
+                                    href={`${API_BASE_URL}/schemes/${id}/download_file/${file.id}/`}
+                                    className="file-link"
+                                    target="_blank" // Открывать в новой вкладке, чтобы не уходить со страницы
+                                    rel="noopener noreferrer"
+                                >
+                                    <span className="file-type">{file.get_file_type_display}</span>
+                                    <span className="file-description">{file.description || 'Основной файл схемы'}</span>
+                                    <span className="file-downloads">Скачан(о) {file.downloads_count} раз</span>
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+              )}
+
+              {/* Теги */}
+              {scheme.tags && scheme.tags.length > 0 && (
+                  <div className="scheme-section">
+                      <strong>Теги:</strong>
+                      <div className="scheme-tags-container">
+                          {scheme.tags.map(tag => (
+                              <span key={tag.id} className="scheme-tag-badge">
+                                  #{tag.name}
+                              </span>
+                          ))}
+                      </div>
+                  </div>
+              )}
+
+              {/* Информация о лицензии */}
+              {scheme.license && (
+                  <div className="scheme-section license-info">
+                      <strong>Лицензия:</strong>
+                      <a href={scheme.license.url} target="_blank" rel="noopener noreferrer">
+                          {scheme.license.name}
+                      </a>
+                      <p className="license-description">
+                          {scheme.license.description}
+                      </p>
+                  </div>
+              )}
+          </div>
+      </div>
 
       <hr style={{ borderColor: 'var(--border-color)', margin: '30px 0' }}/>
 
