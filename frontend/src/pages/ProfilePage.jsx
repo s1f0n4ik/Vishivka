@@ -1,12 +1,15 @@
 // frontend/src/pages/ProfilePage.jsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react'; // Добавьте useContext
+    import { Link } from 'react-router-dom'; // Добавьте Link
 import { useParams } from 'react-router-dom';
 import apiClient from '../api/apiClient';
 import SchemeList from '../components/SchemeList'; // Мы переиспользуем наш компонент!
+import AuthContext from '../context/AuthContext';
 
 function ProfilePage() {
     const { username } = useParams(); // Получаем username из URL
+    const { user } = useContext(AuthContext);
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -55,13 +58,31 @@ function ProfilePage() {
                 />
                 <div>
                     <h2>{profile.username}</h2>
+                    {user && user.username === username && (
+                        <Link to="/profile/edit" className="button button-secondary" style={{marginBottom: '1rem'}}>
+                            Редактировать профиль
+                        </Link>
+                    )}
                     <p><strong>На сайте с:</strong> {registrationDate}</p>
                     {profile.profile.bio && <p><strong>О себе:</strong> {profile.profile.bio}</p>}
                     {profile.profile.location && <p><strong>Город:</strong> {profile.profile.location}</p>}
+
+                    <div className="profile-contacts" style={{ marginTop: '15px' }}>
+                        {profile.email &&
+                            <p><strong>Email:</strong> <a href={`mailto:${profile.email}`}>{profile.email}</a></p>
+                        }
+                        {profile.profile.social_telegram &&
+                            <p><strong>Telegram:</strong> <a href={`https://t.me/${profile.profile.social_telegram.replace('@', '')}`} target="_blank" rel="noopener noreferrer">{profile.profile.social_telegram}</a></p>
+                        }
+                        {profile.profile.social_vk &&
+                             <p><strong>ВКонтакте:</strong> <a href={profile.profile.social_vk} target="_blank" rel="noopener noreferrer">Перейти к профилю</a></p>
+                        }
+                    </div>
+
                 </div>
             </div>
 
-            <h3>Схемы пользователя {profile.username}:</h3>
+{/*             <h3>Схемы пользователя {profile.username}:</h3> */}
             {profile.schemes && profile.schemes.length > 0 ? (
                 // Просто передаем массив схем из профиля в наш готовый компонент!
                 <SchemeList schemes={profile.schemes} />

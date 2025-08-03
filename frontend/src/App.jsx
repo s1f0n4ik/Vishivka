@@ -19,6 +19,8 @@ import ProfilePage from './pages/ProfilePage';
 import FavoritedSchemesPage from './pages/FavoritedSchemesPage';
 import UserMenu from './components/UserMenu';
 
+import ProfileEditPage from './pages/ProfileEditPage';
+
 import './App.css';
 import logo from './assets/logo.png'
 
@@ -91,6 +93,8 @@ function App() {
             <Route path="/schemes/:id/edit" element={<PrivateRoute><SchemeEditForm /></PrivateRoute>} />
             <Route path="/my-schemes" element={<PrivateRoute><MySchemesPage /></PrivateRoute>} />
             <Route path="/favorites" element={<PrivateRoute><FavoritedSchemesPage /></PrivateRoute>} />
+
+            <Route path="/profile/edit" element={<PrivateRoute><ProfileEditPage /></PrivateRoute>} />
         </Routes>
     </Layout>
   );

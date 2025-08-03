@@ -25,9 +25,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-9)8w@g16+wnuk8-*5h2_pet7ymlf=_@jccy%q_=fq3hgl1nhf9"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['stitch-world.online', 'www.stitch-world.online', 'ВАШ_IP_АДРЕС_СЕРВЕРА']
 
 
 # Application definition
@@ -113,7 +113,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 STATIC_URL = '/static/'
 # STATICFILES_DIRS = [BASE_DIR / "static"] # Если будут общие статические файлы на уровне проекта
-STATIC_ROOT = BASE_DIR / 'static_collected' # Для сбора статики в продакшене
+STATIC_ROOT = BASE_DIR / 'staticfiles' # Для сбора статики в продакшене
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
