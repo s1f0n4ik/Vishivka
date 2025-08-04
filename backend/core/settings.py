@@ -143,8 +143,14 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 CORS_ALLOWED_ORIGINS = [
-        "http://localhost:5173", # Адрес нашего Vite-сервера для React
-        "http://127.0.0.1:5173",
+        "https://stitch-world.online",  # (с SSL)
+        "http://stitch-world.online",
+        # "http://localhost:5173", # Адрес нашего Vite-сервера для React
+        # "http://127.0.0.1:5173",
+    ]
+
+CORS_ALLOWED_ORIGINS_REGEXES = [
+        r"^https?://(www\.)?stitch-world\.online$",
     ]
 
 REST_FRAMEWORK = {
